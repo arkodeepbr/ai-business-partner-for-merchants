@@ -120,6 +120,21 @@ paths:
               schema: { $ref: '#/components/schemas/AssistantResponse' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/NotFound' }
+  /api/v1/assistant/chat:
+    post:
+      tags: [assistant]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssistantChatRequest' }
+      responses:
+        '200':
+          description: Authenticated general conversation without merchant records
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AssistantResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
 components:
   securitySchemes:
     bearerAuth:
@@ -156,6 +171,22 @@ components:
       required: [question]
       properties:
         question: { type: string, minLength: 1, maxLength: 2000 }
+    AssistantChatRequest:
+      type: object
+      required: [messages, locale]
+      properties:
+        locale: { type: string, enum: [en, hi, kn] }
+        messages:
+          type: array
+          minItems: 1
+          maxItems: 12
+          items: { $ref: '#/components/schemas/AssistantChatMessage' }
+    AssistantChatMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role: { type: string, enum: [user, assistant] }
+        content: { type: string, minLength: 1, maxLength: 1500 }
     AssistantResponse:
       type: object
       required: [answer, evidence, grounded]

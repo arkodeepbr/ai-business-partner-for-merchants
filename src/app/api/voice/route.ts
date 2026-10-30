@@ -16,20 +16,23 @@ export async function POST(request: Request) {
   }
 
   let text: unknown;
+  let language: unknown;
   try {
-    ({ text } = await request.json());
+    ({ text, language } = await request.json());
   } catch {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
   if (typeof text !== "string" || !text.trim() || text.length > 1200) {
     return NextResponse.json({ error: "text_must_be_between_1_and_1200_characters" }, { status: 422 });
   }
+  const languageCode = language === "hi" ? "hi" : language === "kn" ? "kn" : "en";
 
   const modelId = process.env.ELEVENLABS_MODEL_ID || "eleven_v4";
   try {
     const client = new ElevenLabsClient();
     const audio = await client.textToSpeech.convert(voiceId, {
       text: text.trim(),
+      languageCode,
       modelId,
       outputFormat: "mp3_44100_128",
     });

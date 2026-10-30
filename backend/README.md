@@ -34,7 +34,7 @@ The provider adapter is sandbox-only and returns no records. No public Paytm or 
 
 ### Optional assistant language provider
 
-The assistant can call an OpenAI-compatible Chat Completions endpoint when the backend is configured with `AI_API_BASE_URL`, `AI_API_KEY`, and `AI_MODEL`. Keep these values in the backend's ignored `.env` file or a managed secret store; never put the key in the web app or commit it. The endpoint receives only the authenticated organization ID, its seven-day sales summary, and pending settlements. Before any data is sent, that organization ID must also appear in `AI_DATA_CONSENT_ORGANIZATION_IDS`, after the merchant has explicitly consented. The assistant remains read-only: there is no purchase, campaign, lending, tax filing, payment, or settings action endpoint to execute.
+The backend provides authenticated general chat at `/api/v1/assistant/chat` and grounded business chat at `/api/v1/organizations/{organization_id}/assistant`. General chat receives only the user's bounded conversation and profile name. Grounded chat uses approved, tenant-scoped facts. Configure `AI_API_BASE_URL=https://api.sarvam.ai/v1`, `AI_MODEL=sarvam-105b-conversations`, and `AI_API_KEY` in the backend's ignored `.env` file or a managed secret store; never put the key in the web app or commit it. Business facts are sent only after the merchant has explicitly consented and their organization ID appears in `AI_DATA_CONSENT_ORGANIZATION_IDS`. Saathi remains read-only and cannot execute payments, purchases, campaigns, lending, tax filing, or settings actions.
 
 ## Migrations and checks
 

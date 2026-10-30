@@ -315,6 +315,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/assistant/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AssistantChatRequest"];
+                };
+            };
+            responses: {
+                /** @description Authenticated general conversation without merchant records */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AssistantResponse"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -328,6 +368,16 @@ export interface components {
         };
         AssistantRequest: {
             question: string;
+        };
+        AssistantChatRequest: {
+            /** @enum {string} */
+            locale: "en" | "hi" | "kn";
+            messages: components["schemas"]["AssistantChatMessage"][];
+        };
+        AssistantChatMessage: {
+            /** @enum {string} */
+            role: "user" | "assistant";
+            content: string;
         };
         AssistantResponse: {
             answer: string;

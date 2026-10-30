@@ -6,14 +6,16 @@ import { createClient } from "@/lib/supabase/client";
 
 export function AuthSessionSync() {
   const setAccessToken = useSession((state) => state.setAccessToken);
-  const setEmail = useSession((state) => state.setEmail);
+  const setIdentity = useSession((state) => state.setIdentity);
   useEffect(() => {
     const supabase = createClient();
     if (!supabase) return;
     let alive = true;
     let exchanging = false;
-    const applySession = async (session: { access_token: string; user: { email?: string } } | null) => {
-      setEmail(session?.user.email ?? null);
+    const applySession = async (session: { access_token: string; user: { email?: string; user_metadata?: Record<string, unknown> } } | null) => {
+      const metadata = session?.user.user_metadata ?? {};
+      const displayName = [metadata.full_name, metadata.name, metadata.given_name].find((value) => typeof value === "string" && value.trim());
+      setIdentity({ email: session?.user.email ?? null, displayName: typeof displayName === "string" ? displayName : null });
       if (!session) { setAccessToken(null); return; }
       if (exchanging) return;
       exchanging = true;
@@ -34,6 +36,6 @@ export function AuthSessionSync() {
       queueMicrotask(() => { void applySession(session); });
     });
     return () => { alive = false; subscription.unsubscribe(); };
-  }, [setAccessToken, setEmail]);
+  }, [setAccessToken, setIdentity]);
   return null;
 }

@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -32,6 +33,16 @@ class ConversationResponse(BaseModel):
     answer: str
     evidence: dict
     grounded: bool = False
+
+
+class AssistantChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=2000)
+
+
+class AssistantChatRequest(BaseModel):
+    messages: list[AssistantChatMessage] = Field(min_length=1, max_length=12)
+    locale: Literal["en", "hi", "kn"] = "en"
 
 
 class AuthSessionRequest(BaseModel):

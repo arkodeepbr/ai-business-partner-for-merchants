@@ -9,12 +9,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
-from app.assistant import AssistantProviderError, generate_grounded_answer
+from app.assistant import AssistantProviderError, generate_conversational_answer, generate_grounded_answer
 from app.auth import current_user, require_membership, issue_access_token
 from app.core.config import get_settings
 from app.db import get_db, engine
 from app.models import Organization, PaymentTransaction, Settlement, User
-from app.schemas import AuthSessionRequest, AuthSessionResponse, ConversationRequest, ConversationResponse, SalesSummary, TransactionRead
+from app.schemas import AssistantChatRequest, AuthSessionRequest, AuthSessionResponse, ConversationRequest, ConversationResponse, SalesSummary, TransactionRead
 from app.analytics import sales_summary
 
 settings = get_settings()
@@ -106,6 +106,20 @@ def me(user: User = Depends(current_user), db: Session = Depends(get_db)):
     from app.models import Membership
     memberships = db.scalars(select(Membership).where(Membership.user_id == user.id)).all()
     return {"user_id": user.id, "organizations": [{"id": m.organization_id, "role": m.role} for m in memberships]}
+
+
+@app.post("/api/v1/assistant/chat", response_model=ConversationResponse)
+async def assistant_chat(body: AssistantChatRequest, user: User = Depends(current_user)):
+    if not settings.assistant_configured:
+        return ConversationResponse(answer="I’m Saathi, your AI business partner. I can chat in English, Hindi, or Kannada, but my AI service still needs its provider key configured before I can generate a fresh answer. Your account data stays private in the meantime.", evidence={"reason": "assistant_provider_not_configured"})
+    messages = [{"role": item.role, "content": item.content} for item in body.messages]
+    try:
+        answer = await run_in_threadpool(generate_conversational_answer, messages, user.full_name or "Merchant", body.locale, settings)
+    except AssistantProviderError as exc:
+        reason = str(exc)
+        answer = "Sorry, I can’t reach my AI service right now. Please try again shortly."
+        return ConversationResponse(answer=answer, evidence={"reason": reason})
+    return ConversationResponse(answer=answer, evidence={"mode": "conversational"})
 
 
 @app.get("/api/v1/organizations/{organization_id}/analytics/sales", response_model=SalesSummary)

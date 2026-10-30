@@ -13,6 +13,7 @@ export default function LoginForm() {
   const search = useSearchParams();
   const [mode, setMode] = useState<Mode>(search.get("mode") === "update-password" ? "update-password" : "signin");
   const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
@@ -33,7 +34,7 @@ export default function LoginForm() {
     if (!supabase) { setBusy(false); report("Sign-in needs a Supabase project. Add its URL and publishable key to web/.env.local, then restart the web app."); return; }
     try {
       if (mode === "signup") {
-        const { error: authError } = await supabase.auth.signUp({ email, password });
+        const { error: authError } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName.trim() } } });
         if (authError) throw authError;
         setEmailOtpPurpose("signup"); setEmailCodeSent(true); setMode("email-otp"); success("We sent a verification code to your email. Enter it here to activate your account.");
       } else if (mode === "signin") {
@@ -103,6 +104,7 @@ export default function LoginForm() {
       {mode === "signin" && <div className="auth-divider"><span>or sign in with email</span></div>}
       <form onSubmit={act} className="auth-form">
         {(mode === "signin" || mode === "signup" || mode === "forgot" || mode === "email-otp") && <label>Email address<span className="auth-input"><Mail size={17}/><input type="email" required autoComplete="email" placeholder="you@business.com" value={email} onChange={(event) => setEmail(event.target.value)}/></span></label>}
+        {mode === "signup" && <label>Your name<span className="auth-input"><input type="text" required autoComplete="name" placeholder="Name shown in your profile" value={fullName} onChange={(event) => setFullName(event.target.value)}/></span></label>}
         {mode === "phone-otp" && !phoneCodeSent && <label>Phone number<span className="auth-input"><Phone size={17}/><input type="tel" required autoComplete="tel" placeholder="+919876543210" value={phone} onChange={(event) => setPhone(event.target.value)}/></span></label>}
         {(mode === "signup" || mode === "signin" || mode === "update-password") && <label>{mode === "update-password" ? "New password" : "Password"}<span className="auth-input"><KeyRound size={17}/><input type={showPassword ? "text" : "password"} required minLength={8} autoComplete={mode === "signin" ? "current-password" : "new-password"} placeholder="At least 8 characters" value={password} onChange={(event) => setPassword(event.target.value)}/><button type="button" className="password-toggle" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={16}/> : <Eye size={16}/>}</button></span></label>}
         {((mode === "email-otp" && emailCodeSent) || (mode === "phone-otp" && phoneCodeSent)) && <label>Verification code<span className="auth-input"><ShieldCheck size={17}/><input inputMode="numeric" autoComplete="one-time-code" required minLength={6} maxLength={8} placeholder="Enter your code" value={otp} onChange={(event) => setOtp(event.target.value)}/></span></label>}
