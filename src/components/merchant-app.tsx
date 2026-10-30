@@ -13,7 +13,7 @@ import { useSession } from "@/lib/auth";
 import { useLocalePreference, type Locale } from "@/lib/locale";
 import { interpretSaathiCommand } from "@/lib/saathi-commands";
 import { answerDemoQuestion, DEMO_DAILY_SALES, DEMO_PENDING_SETTLEMENT, DEMO_RANGE, DEMO_SALES_SUMMARY, DEMO_TRANSACTIONS } from "@/lib/demo-data";
-import { speakSaathi, type VoiceLocale } from "@/lib/voice";
+import { prepareVoicePlayback, speakSaathi, type VoiceLocale } from "@/lib/voice";
 import { useTranslations } from "next-intl";
 import { createClient as createSupabaseClient } from "@/lib/supabase/client";
 
@@ -31,6 +31,14 @@ function shortSpokenReply(text: string) {
   const firstSentences = text.trim().split(/(?<=[.!?।])\s+/u).slice(0, 2).join(" ");
   const words = firstSentences.split(/\s+/u);
   return words.length > 120 ? `${words.slice(0, 120).join(" ")}…` : firstSentences;
+}
+function detectLocale(text: string, fallback: Locale): Locale {
+  if (/[\u0C80-\u0CFF]/u.test(text)) return "kn";
+  if (/[\u0900-\u097F]/u.test(text)) return "hi";
+  const normalized = text.toLocaleLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/gu, " ").trim();
+  if (/\b(tum|aap|kaisi|kaise|kaisa|hai|hain|ho|kya|kyun|kyu|kaun|mera|meri|mere|mujhe|mujhko|batao|bataye|karna|karo|karoge|chahiye|accha|achha|theek|thik|nahi|nahin|haan|han|namaste|kaise|kitna|kitni|kahan|kab|kyun|kyunki|tumhara|aapka|aapki|hum|hain|hu|hoon)\b/u.test(normalized)) return "hi";
+  if (/\b(hegiddira|hegiddiya|hegide|hege|enu|yenu|yaake|nanna|nimma|ivattu|maadi|helri|helappa|chennagide|beku|illa|sari|kannada)\b/u.test(normalized)) return "kn";
+  return fallback;
 }
 
 export function MerchantApp() {
@@ -60,7 +68,7 @@ export function MerchantApp() {
   const transactionsQuery = useQuery({ queryKey: ["transactions", selectedOrg], queryFn: () => api.transactions(selectedOrg), enabled: !!token && !!selectedOrg });
   const chatForm = useForm<ChatForm>({ resolver: zodResolver(chatSchema), defaultValues: { question: "" } });
   const askMutation = useMutation({
-    mutationFn: (request: { question: string; history: { role: "user" | "assistant"; content: string }[]; organizationId: string; grounded: boolean }) => request.grounded ? api.ask(request.organizationId, request.question) : api.chat([...request.history, { role: "user", content: request.question }], locale),
+    mutationFn: (request: { question: string; history: { role: "user" | "assistant"; content: string }[]; organizationId: string; locale: Locale; grounded: boolean }) => request.grounded ? api.ask(request.organizationId, request.question) : api.chat([...request.history, { role: "user", content: request.question }], request.locale),
     onSuccess: (result: AssistantResponse) => { const provenance = result.grounded && Array.isArray(result.evidence.sources) ? `\n\nChecked against: ${(result.evidence.sources as string[]).join(", ")}.` : ""; setMessages((items) => [...items, { role: "assistant", text: `${result.answer}${provenance}` }]); },
     onError: (error: Error) => setMessages((items) => [...items, { role: "assistant", text: `Saathi could not reach the shared API: ${error.message}. No business figures were generated.` }]),
   });
@@ -79,8 +87,8 @@ export function MerchantApp() {
     }
     if (latestAssistantIndex <= spokenAssistantIndexRef.current) return;
     spokenAssistantIndexRef.current = latestAssistantIndex;
-    void speakReply(shortSpokenReply(latestAssistantAnswer));
-  }, [askMutation.isPending, latestAssistantAnswer, messages, speakReply]);
+    void speakReply(shortSpokenReply(latestAssistantAnswer), detectLocale(latestAssistantAnswer, locale));
+  }, [askMutation.isPending, latestAssistantAnswer, locale, messages, speakReply]);
 
   useEffect(() => {
     const cursor = cursorRef.current;
@@ -119,6 +127,9 @@ export function MerchantApp() {
   const apiError = token ? (meQuery.error || salesQuery.error) as Error | null : null;
 
   function askSaathi(question: string) {
+    prepareVoicePlayback();
+    const responseLocale = detectLocale(question, locale);
+    if (responseLocale !== locale) setLocale(responseLocale);
     const command = interpretSaathiCommand(question, locale);
     if (command.page !== "assistant") setPage(command.page);
     setMobileNavOpen(false);
@@ -127,7 +138,7 @@ export function MerchantApp() {
         setCommandNotice("");
         const history = messages.slice(-10).map((item) => ({ role: item.role, content: item.text }));
         setMessages((items) => [...items, { role: "user", text: question }]);
-        askMutation.mutate({ question, history, organizationId: selectedOrg, grounded: true });
+        askMutation.mutate({ question, history, organizationId: selectedOrg, locale: responseLocale, grounded: true });
       } else {
         const localAnswer = answerDemoQuestion(question);
         setCommandNotice(localAnswer);
@@ -147,7 +158,7 @@ export function MerchantApp() {
     }
     const history = messages.slice(-10).map((item) => ({ role: item.role, content: item.text }));
     setMessages((items) => [...items, { role: "user", text: question }]);
-    askMutation.mutate({ question, history, organizationId: selectedOrg, grounded: false });
+    askMutation.mutate({ question, history, organizationId: selectedOrg, locale: responseLocale, grounded: false });
   }
 
   function onAsk(values: ChatForm) {
@@ -265,6 +276,7 @@ function AssistantCard({orgId,locale,onLocaleDetected,messages,pending,onAsk,onS
   }
 
   async function toggleVoiceInput() {
+    prepareVoicePlayback();
     if (listening) {
       if (recorderRef.current?.state === "recording") { setVoiceNotice("Transcribing your speech…"); recorderRef.current.stop(); }
       else { recognitionRef.current?.stop(); setListening(false); }
@@ -285,7 +297,6 @@ function AssistantCard({orgId,locale,onLocaleDetected,messages,pending,onAsk,onS
         try {
           const formData = new FormData();
           formData.append("file", new File([audio], recorder.mimeType.includes("mp4") ? "saathi-voice.mp4" : "saathi-voice.webm", { type: audio.type }));
-          formData.append("language", locale);
           const response = await fetch("/api/transcribe", { method: "POST", body: formData });
           const result = await response.json() as { text?: string; languageCode?: string; error?: string };
           if (!response.ok || !result.text?.trim()) throw new Error(result.error ?? "transcription_failed");

@@ -1,16 +1,28 @@
 export type VoiceLocale = "en" | "hi" | "kn";
 let activeAudio: HTMLAudioElement | null = null;
+let audioContext: AudioContext | null = null;
+let activeSource: AudioBufferSourceNode | null = null;
 let playbackRequest = 0;
+
+/** Resume audio synchronously from a user gesture so later AI replies can autoplay. */
+export function prepareVoicePlayback() {
+  if (typeof window === "undefined" || !("AudioContext" in window)) return;
+  try {
+    audioContext ??= new AudioContext();
+    if (audioContext.state === "suspended") void audioContext.resume().catch(() => undefined);
+  } catch { /* Speech synthesis remains the fallback on browsers without Web Audio. */ }
+}
 
 /** Try the server-side ElevenLabs proxy first, then fall back to browser speech. */
 export async function speakSaathi(text: string, locale: VoiceLocale): Promise<"elevenlabs" | "browser" | "unavailable"> {
   if (typeof window === "undefined") return "unavailable";
   const requestId = ++playbackRequest;
+  prepareVoicePlayback();
   window.speechSynthesis?.cancel();
   activeAudio?.pause();
-  if (activeAudio) URL.revokeObjectURL(activeAudio.src);
   activeAudio = null;
-  let audioUrl: string | null = null;
+  try { activeSource?.stop(); } catch { /* It may have already finished. */ }
+  activeSource = null;
 
   try {
     const response = await fetch("/api/voice", {
@@ -19,22 +31,23 @@ export async function speakSaathi(text: string, locale: VoiceLocale): Promise<"e
       body: JSON.stringify({ text, language: locale }),
     });
     if (!response.ok) throw new Error("Voice service is not configured");
-    const audioBlob = await response.blob();
+    const audioData = await response.arrayBuffer();
     if (requestId !== playbackRequest) return "unavailable";
-    audioUrl = URL.createObjectURL(audioBlob);
-    const audio = new Audio(audioUrl);
-    activeAudio = audio;
-    audio.addEventListener("ended", () => { URL.revokeObjectURL(audio.src); if(activeAudio===audio)activeAudio=null; }, { once: true });
-    audio.addEventListener("error", () => { URL.revokeObjectURL(audio.src); if(activeAudio===audio)activeAudio=null; }, { once: true });
-    await audio.play();
-    if (requestId !== playbackRequest) { audio.pause(); return "unavailable"; }
+    if (!audioContext) throw new Error("Web Audio unavailable");
+    if (audioContext.state === "suspended") await audioContext.resume();
+    const buffer = await audioContext.decodeAudioData(audioData);
+    if (requestId !== playbackRequest) return "unavailable";
+    const source = audioContext.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioContext.destination);
+    source.onended = () => { if (activeSource === source) activeSource = null; };
+    activeSource = source;
+    source.start();
     return "elevenlabs";
   } catch {
     if (requestId !== playbackRequest) {
-      if (audioUrl) URL.revokeObjectURL(audioUrl);
       return "unavailable";
     }
-    if (audioUrl) URL.revokeObjectURL(audioUrl);
     activeAudio = null;
     if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === "undefined") return "unavailable";
     const utterance = new SpeechSynthesisUtterance(text);
