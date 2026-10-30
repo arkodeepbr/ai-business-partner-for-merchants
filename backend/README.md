@@ -22,13 +22,16 @@ Docker Compose is provided for local PostgreSQL and Redis. The current API only 
 
 - `GET /health/live`, `GET /health/ready`
 - `GET /api/v1/me`
+- `GET /api/v1/me/workspace`, `PATCH /api/v1/me/workspace` (signed-in user's Saathi chat history and language preference)
 - `GET /api/v1/organizations/{organization_id}/analytics/sales?from_at=...&to_at=...`
 - `GET /api/v1/organizations/{organization_id}/transactions?limit=...`
 - `POST /api/v1/organizations/{organization_id}/assistant`
 
 All amounts are integer minor units (INR paise). The sales metric is gross successful collections in a half-open UTC timestamp window. It excludes refunds, fees, disputes, and settlements. Timezone conversion for merchant-local calendar windows belongs in a caller/service layer and is not yet implemented. Unauthenticated requests receive 401; a user outside an organization receives indistinguishable 404. The assistant endpoint responds with a safe unavailable message until a consented provider and grounded tool runtime are configured.
 
-The auth foundation verifies short lived signed bearer tokens and active users. There is intentionally no public token issuance endpoint: production OTP delivery, verification, abuse controls, refresh/revocation, and session lifecycle must be connected to an authorized identity provider before merchant login is enabled.
+The auth foundation verifies short lived signed bearer tokens and active users. The session endpoint exchanges verified Supabase access tokens; Supabase handles email/password sign-in, Google OAuth, signup verification, and password reset. Configure Supabase redirect URLs, email delivery, and OAuth provider credentials for each deployment. There is no public endpoint that issues a session without verifying the Supabase token.
+
+The signed-in workspace stores up to 200 recent Saathi chat messages and the user's preferred language in `user_workspace_data`, keyed to the authenticated user. The API derives the owner from the verified bearer token; clients cannot choose another user's ID. Apply `alembic upgrade head` to create the table. Merchant transactions and settlements remain organization-scoped in their existing tables and are visible only to members of that organization.
 
 The provider adapter is sandbox-only and returns no records. No public Paytm or Soundbox API is assumed. `PROVIDER_MODE=production` does not create a production connector; live mode remains unavailable until an approved provider adapter and credentials are supplied.
 

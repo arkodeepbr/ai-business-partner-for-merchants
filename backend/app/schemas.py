@@ -45,6 +45,21 @@ class AssistantChatRequest(BaseModel):
     locale: Literal["en", "hi", "kn"] = "en"
 
 
+class WorkspaceMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=4000)
+
+
+class WorkspaceDataResponse(BaseModel):
+    assistant_messages: list[WorkspaceMessage]
+    preferred_locale: Literal["en", "hi", "kn"]
+
+
+class WorkspaceDataUpdate(BaseModel):
+    assistant_messages: list[WorkspaceMessage] | None = Field(default=None, max_length=200)
+    preferred_locale: Literal["en", "hi", "kn"] | None = None
+
+
 class AuthSessionRequest(BaseModel):
     access_token: str = Field(min_length=20, max_length=8192)
 

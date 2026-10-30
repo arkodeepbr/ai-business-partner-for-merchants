@@ -32,6 +32,33 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/MeResponse' }
         '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/v1/me/workspace:
+    get:
+      tags: [identity]
+      summary: Read the signed-in user's saved Saathi messages and preferences
+      responses:
+        '200':
+          description: Private account workspace data
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WorkspaceData' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    patch:
+      tags: [identity]
+      summary: Save the signed-in user's Saathi messages or language preference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkspaceDataUpdate' }
+      responses:
+        '200':
+          description: Updated private account workspace data
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WorkspaceData' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { description: Invalid workspace data }
   /api/v1/auth/session:
     post:
       security: []
@@ -166,6 +193,29 @@ components:
             properties:
               id: { type: string }
               role: { type: string }
+    WorkspaceMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role: { type: string, enum: [user, assistant] }
+        content: { type: string, minLength: 1, maxLength: 4000 }
+    WorkspaceData:
+      type: object
+      required: [assistant_messages, preferred_locale]
+      properties:
+        assistant_messages:
+          type: array
+          maxItems: 200
+          items: { $ref: '#/components/schemas/WorkspaceMessage' }
+        preferred_locale: { type: string, enum: [en, hi, kn] }
+    WorkspaceDataUpdate:
+      type: object
+      properties:
+        assistant_messages:
+          type: array
+          maxItems: 200
+          items: { $ref: '#/components/schemas/WorkspaceMessage' }
+        preferred_locale: { type: string, enum: [en, hi, kn] }
     AssistantRequest:
       type: object
       required: [question]

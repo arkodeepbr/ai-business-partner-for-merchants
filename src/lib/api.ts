@@ -7,6 +7,8 @@ export type MeResponse = components["schemas"]["MeResponse"];
 export type SalesSummary = components["schemas"]["SalesSummary"];
 export type Transaction = components["schemas"]["Transaction"];
 export type AssistantResponse = components["schemas"]["AssistantResponse"];
+export type WorkspaceData = components["schemas"]["WorkspaceData"];
+export type WorkspaceDataUpdate = components["schemas"]["WorkspaceDataUpdate"];
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
@@ -32,4 +34,6 @@ export const api = {
   transactions: (org: string) => apiFetch<Transaction[]>(`/api/v1/organizations/${org}/transactions?limit=8`),
   ask: (org: string, question: string) => apiFetch<AssistantResponse>(`/api/v1/organizations/${org}/assistant`, { method: "POST", body: JSON.stringify({ question }) }),
   chat: (messages: { role: "user" | "assistant"; content: string }[], locale: Locale) => apiFetch<AssistantResponse>("/api/v1/assistant/chat", { method: "POST", body: JSON.stringify({ messages, locale }) }),
+  workspace: () => apiFetch<WorkspaceData>("/api/v1/me/workspace"),
+  saveWorkspace: (data: WorkspaceDataUpdate) => apiFetch<WorkspaceData>("/api/v1/me/workspace", { method: "PATCH", body: JSON.stringify(data) }),
 };

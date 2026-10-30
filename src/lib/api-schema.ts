@@ -113,6 +113,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/workspace": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read the signed-in user's saved Saathi messages and preferences */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Private account workspace data */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WorkspaceData"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Save the signed-in user's Saathi messages or language preference */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["WorkspaceDataUpdate"];
+                };
+            };
+            responses: {
+                /** @description Updated private account workspace data */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WorkspaceData"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                /** @description Invalid workspace data */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
     "/api/v1/auth/session": {
         parameters: {
             query?: never;
@@ -365,6 +434,21 @@ export interface components {
                 id: string;
                 role: string;
             }[];
+        };
+        WorkspaceMessage: {
+            /** @enum {string} */
+            role: "user" | "assistant";
+            content: string;
+        };
+        WorkspaceData: {
+            assistant_messages: components["schemas"]["WorkspaceMessage"][];
+            /** @enum {string} */
+            preferred_locale: "en" | "hi" | "kn";
+        };
+        WorkspaceDataUpdate: {
+            assistant_messages?: components["schemas"]["WorkspaceMessage"][];
+            /** @enum {string} */
+            preferred_locale?: "en" | "hi" | "kn";
         };
         AssistantRequest: {
             question: string;

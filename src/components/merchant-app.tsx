@@ -48,6 +48,7 @@ export function MerchantApp() {
   const [orgId, setOrgId] = useState("");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; text: string }[]>([]);
+  const [workspaceReadyToken, setWorkspaceReadyToken] = useState<string | null>(null);
   const [commandNotice, setCommandNotice] = useState("");
   const [floatingAssistantOpen, setFloatingAssistantOpen] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState("Browser voice ready");
@@ -60,12 +61,44 @@ export function MerchantApp() {
   const accountLabel = displayName || email?.split("@")[0] || "Merchant";
   const locale = useLocalePreference((state) => state.locale);
   const setLocale = useLocalePreference((state) => state.setLocale);
+  const workspaceSaveSequence = useRef(0);
   const period = useMemo(() => currentWeek(), []);
   const meQuery = useQuery({ queryKey: ["me", token], queryFn: api.me, enabled: !!token });
   const selectedOrg = orgId || meQuery.data?.organizations[0]?.id || "";
   const demoMode = !token || !selectedOrg;
   const salesQuery = useQuery({ queryKey: ["sales", selectedOrg, period], queryFn: () => api.sales(selectedOrg, period.start, period.end), enabled: !!token && !!selectedOrg });
   const transactionsQuery = useQuery({ queryKey: ["transactions", selectedOrg], queryFn: () => api.transactions(selectedOrg), enabled: !!token && !!selectedOrg });
+  const visibleMessages = token && workspaceReadyToken !== token ? [] : messages;
+
+  useEffect(() => {
+    if (!token) { queueMicrotask(() => setMessages([])); return; }
+    let active = true;
+    void api.workspace().then((workspace) => {
+      if (!active) return;
+      setMessages(workspace.assistant_messages.map((message) => ({ role: message.role, text: message.content })));
+      setLocale(workspace.preferred_locale);
+      setWorkspaceReadyToken(token);
+    }).catch((error: unknown) => {
+      console.error("Could not load this account's saved workspace", error);
+      if (active) setCommandNotice("I couldn’t load this account’s saved data. Check the connection and refresh to try again.");
+    });
+    return () => { active = false; };
+  }, [token, setLocale]);
+
+  useEffect(() => {
+    if (!token || workspaceReadyToken !== token) return;
+    const ownerToken = token;
+    const sequence = ++workspaceSaveSequence.current;
+    const workspaceUpdate = {
+      assistant_messages: messages.slice(-200).map((message) => ({ role: message.role, content: message.text })),
+      preferred_locale: locale,
+    };
+    const timer = window.setTimeout(() => {
+      if (workspaceSaveSequence.current !== sequence || useSession.getState().accessToken !== ownerToken) return;
+      void api.saveWorkspace(workspaceUpdate).catch((error: unknown) => console.error("Could not save this account's workspace", error));
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, [messages, locale, token, workspaceReadyToken]);
   const chatForm = useForm<ChatForm>({ resolver: zodResolver(chatSchema), defaultValues: { question: "" } });
   const askMutation = useMutation({
     mutationFn: (request: { question: string; context?: string; history: { role: "user" | "assistant"; content: string }[]; organizationId: string; locale: Locale; grounded: boolean }) => request.grounded ? api.ask(request.organizationId, request.question) : api.chat([...request.history, { role: "user", content: request.context ? `Question: ${request.question.slice(0, 950)}\n\n${request.context.slice(0, 950)}` : request.question }], request.locale),
@@ -73,7 +106,7 @@ export function MerchantApp() {
     onError: (error: Error) => setMessages((items) => [...items, { role: "assistant", text: `Saathi could not reach the shared API: ${error.message}. No business figures were generated.` }]),
   });
 
-  const latestAssistantAnswer = [...messages].reverse().find((message) => message.role === "assistant")?.text ?? "";
+  const latestAssistantAnswer = [...visibleMessages].reverse().find((message) => message.role === "assistant")?.text ?? "";
   const speakReply = useCallback(async (text: string, language: VoiceLocale = locale) => {
     const provider = await speakSaathi(text, language);
     setVoiceStatus(provider === "elevenlabs" ? "ElevenLabs voice" : provider === "browser" ? "Browser voice" : "Voice unavailable");
@@ -125,9 +158,14 @@ export function MerchantApp() {
   ];
   const isLoading = token && (meQuery.isPending || (!!selectedOrg && salesQuery.isPending));
   const apiError = token ? (meQuery.error || salesQuery.error) as Error | null : null;
+  const workspaceLoading = !!token && workspaceReadyToken !== token;
 
   function askSaathi(question: string) {
     prepareVoicePlayback();
+    if (token && workspaceReadyToken !== token) {
+      setCommandNotice("Your saved account data is still loading. Please try again in a moment.");
+      return;
+    }
     const responseLocale = detectLocale(question, locale);
     if (responseLocale !== locale) setLocale(responseLocale);
     const command = interpretSaathiCommand(question, responseLocale);
@@ -176,13 +214,13 @@ export function MerchantApp() {
   async function signOut() {
     const supabase = createSupabaseClient();
     if (supabase) await supabase.auth.signOut();
-    setToken(null); setOrgId(""); router.replace("/login"); router.refresh();
+    setMessages([]); setWorkspaceReadyToken(null); setToken(null); setOrgId(""); router.replace("/login"); router.refresh();
   }
 
   return <div className="app-shell">
     <span ref={cursorRef} className="cinematic-cursor" aria-hidden="true" />
     {commandNotice && <div className="command-toast" role="status"><Sparkles size={16}/><span>{commandNotice}</span><button type="button" className="toast-speak" aria-label="Speak Saathi message" title="Speak this message" onClick={() => void speakReply(commandNotice)}><Volume2 size={15}/></button><button type="button" aria-label="Dismiss Saathi message" onClick={() => setCommandNotice("")}><X size={15}/></button></div>}
-    <FloatingSaathi open={floatingAssistantOpen} onToggle={() => setFloatingAssistantOpen((open) => !open)} onClose={() => setFloatingAssistantOpen(false)} onAsk={askSaathi} onSpeak={(text) => void speakReply(text)} messages={messages} latestAnswer={latestAssistantAnswer} pending={askMutation.isPending} voiceStatus={voiceStatus} onOpenVoice={() => { setPage("assistant"); setFloatingAssistantOpen(false); }}/>
+    <FloatingSaathi open={floatingAssistantOpen} onToggle={() => setFloatingAssistantOpen((open) => !open)} onClose={() => setFloatingAssistantOpen(false)} onAsk={askSaathi} onSpeak={(text) => void speakReply(text)} messages={visibleMessages} latestAnswer={latestAssistantAnswer} pending={askMutation.isPending || workspaceLoading} voiceStatus={voiceStatus} onOpenVoice={() => { setPage("assistant"); setFloatingAssistantOpen(false); }}/>
     <aside className={`sidebar ${mobileNavOpen ? "sidebar-open" : ""}`}>
       <a className="brand" href="#overview" onClick={(event) => { event.preventDefault(); setPage("overview"); }}><span className="brand-mark"><i/><i/><i/></span><span className="brand-name">paytm<span>.</span><small>SAATHI</small></span></a>
       <button suppressHydrationWarning className="shop-switcher" onClick={() => selectedOrg && setOrgId(selectedOrg)}><span className="shop-avatar">{selectedOrg ? "M" : "·"}</span><span><b>{selectedOrg ? "Merchant business" : "Connect your account"}</b><small>{selectedOrg ? "Verified membership" : "Sign in to view your stores"}</small></span><ChevronDown size={16}/></button>
@@ -202,8 +240,8 @@ export function MerchantApp() {
           <div id="api-connection" className={`status-banner ${demoMode ? "status-demo" : apiError ? "status-error" : ""}`}><div className="status-icon">{demoMode ? <Sparkles size={17}/> : isLoading ? <Activity size={17} className="spin"/> : apiError ? <X size={17}/> : <ShieldCheck size={17}/>}</div><div><strong>{demoMode ? `DEMO DATA · sample week ${DEMO_RANGE}` : isLoading ? "Loading authorized merchant data" : apiError ? "Unable to load merchant data" : "Connected to shared merchant API"}</strong><p>{demoMode ? "Sample sales and payment activity for product preview only. These figures are not from your Paytm account." : apiError ? `API request did not complete: ${apiError.message}` : "This page uses verified records from your authorized merchant account."}</p></div><span className="status-env">{demoMode ? "SAMPLE ONLY" : process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000"}</span></div>
           <section className="metric-grid" aria-label={demoMode ? "Sample demo sales metrics" : "Authorized business metrics"}><MetricCard label="Gross collections" value={displayedGross} detail={demoMode ? "Successful sample payments · excludes failures" : salesQuery.data ? "Successful payments · excludes refunds and fees" : "Waiting for authorized data"} icon="₹" tone="teal"/><MetricCard label="Successful payments" value={displayedCount} detail={demoMode ? `Sample week · ${DEMO_RANGE}` : "In the selected period"} icon="✓" tone="violet"/><MetricCard label="Average payment" value={displayedAverage} detail="Gross collections ÷ successful payments" icon="⌁" tone="amber"/><MetricCard label="Pending settlement" value={demoMode ? money(DEMO_PENDING_SETTLEMENT.amountMinor) : "—"} detail={demoMode ? `${DEMO_PENDING_SETTLEMENT.payoutCount} sample payouts · expected ${DEMO_PENDING_SETTLEMENT.expected}` : "Settlement data is not available in API yet"} icon="↓" tone="pink"/></section>
           <section className="content-grid"><article className="panel sales-panel"><div className="panel-header"><div><h3>Collections summary</h3><p>{demoMode ? `Sample sales · ${DEMO_RANGE}` : "Authorized period total"}</p></div><span className="chart-period">{demoMode ? "DEMO" : "Last 7 days"}</span></div>{demoMode ? <DemoSalesChart/> : <EmptyChart message={salesQuery.data ? "The sales API currently returns a period total, not dated daily values." : "Daily totals will appear when the analytics API returns dated records."}/>}<div className="definition-note"><ShieldCheck size={15}/><span>{demoMode ? "Illustrative sample transactions; not a merchant statement." : salesQuery.data?.definition ?? "No totals are estimated or substituted while data is unavailable."}</span></div></article><article className="panel activity-panel"><div className="panel-header"><div><h3>Recent transactions</h3><p>{demoMode ? "Illustrative sample activity" : "Latest authorized payment activity"}</p></div><button className="text-action" onClick={() => setPage("sales")}>View sales <ArrowRight size={14}/></button></div><TransactionList data={demoMode ? DEMO_TRANSACTIONS.slice(0,8) : transactionsQuery.data ?? []} loading={!demoMode && transactionsQuery.isPending && !!token} error={demoMode ? null : transactionsQuery.error as Error | null} canQuery={demoMode || (!!token && !!selectedOrg)} locale={locale}/></article></section>
-          <section className="bottom-grid"><AssistantCard orgId={selectedOrg} locale={locale} onLocaleDetected={setLocale} messages={messages} pending={askMutation.isPending} onAsk={askSaathi} onSpeak={speakReply} form={chatForm} submit={onAsk}/><article className="panel readiness-panel"><div className="panel-header"><div><h3>Business tools</h3><p>Availability from the shared API contract</p></div><BriefcaseBusiness size={18}/></div><FeatureAvailability items={[["Settlements & cash flow", false],["Inventory & purchase orders", false],["Customers & campaigns", false],["Tax & report exports", false],["Approvals & notifications", false]]}/></article></section>
-        </> : page === "assistant" ? <AssistantPage orgId={selectedOrg} locale={locale} onLocaleDetected={setLocale} messages={messages} pending={askMutation.isPending} onAsk={askSaathi} onSpeak={speakReply} form={chatForm} submit={onAsk}/> : <ModuleUnavailable page={page} onBack={() => setPage("overview")}/>}
+          <section className="bottom-grid"><AssistantCard orgId={selectedOrg} locale={locale} onLocaleDetected={setLocale} messages={visibleMessages} pending={askMutation.isPending || workspaceLoading} onAsk={askSaathi} onSpeak={speakReply} form={chatForm} submit={onAsk}/><article className="panel readiness-panel"><div className="panel-header"><div><h3>Business tools</h3><p>Availability from the shared API contract</p></div><BriefcaseBusiness size={18}/></div><FeatureAvailability items={[["Settlements & cash flow", false],["Inventory & purchase orders", false],["Customers & campaigns", false],["Tax & report exports", false],["Approvals & notifications", false]]}/></article></section>
+        </> : page === "assistant" ? <AssistantPage orgId={selectedOrg} locale={locale} onLocaleDetected={setLocale} messages={visibleMessages} pending={askMutation.isPending || workspaceLoading} onAsk={askSaathi} onSpeak={speakReply} form={chatForm} submit={onAsk}/> : <ModuleUnavailable page={page} onBack={() => setPage("overview")}/>}
         <footer className="page-footer"><span>Paytm Saathi · Connected data only · API availability varies by service.</span><span><button onClick={() => setPage("settings")}>Privacy &amp; data</button><i/><button onClick={() => setPage("support")}>Support</button></span></footer>
       </div>
       <nav className="mobile-bottom-nav" aria-label="Quick navigation">{nav.slice(0,5).map((item) => { const Icon=item.icon; return <button key={item.key} className={page===item.key?"active":""} onClick={()=>setPage(item.key)}><Icon size={18}/><span>{item.label}</span></button>; })}</nav>
@@ -229,7 +267,7 @@ function FloatingSaathi({open,onToggle,onClose,onAsk,onSpeak,messages,latestAnsw
   return <div className="saathi-float">
     {open&&<section className="saathi-float-panel" role="dialog" aria-label="Saathi AI assistant">
       <header className="saathi-float-header"><div className="saathi-float-avatar"><Sparkles size={18}/></div><div><strong>Saathi AI</strong><small><i/> {voiceStatus}</small></div><button type="button" aria-label="Close Saathi" onClick={onClose}><X size={16}/></button></header>
-      <div className="saathi-float-messages" aria-live="polite">{messages.length===0?<div className="saathi-float-empty">Ask me about sales, settlements, stock or your shop. I’ll speak my reply.</div>:messages.slice(-4).map((message,index)=><div key={`${message.role}-${index}`} className={`saathi-float-message ${message.role}`}>{message.text}</div>)}{pending&&<div className="saathi-float-message assistant">Saathi is working…</div>}</div>
+      <div className="saathi-float-messages" aria-live="polite">{messages.length===0?<div className="saathi-float-empty">Ask me about sales, settlements, stock or your shop. I’ll speak my reply.</div>:messages.map((message,index)=><div key={`${message.role}-${index}`} className={`saathi-float-message ${message.role}`}>{message.text}</div>)}{pending&&<div className="saathi-float-message assistant">Saathi is working…</div>}</div>
       <form className="saathi-float-input" onSubmit={submit}><input value={draft} onChange={(event)=>setDraft(event.target.value)} placeholder="Ask Saathi anything…" aria-label="Ask Saathi anything"/><button type="submit" disabled={pending||!draft.trim()} aria-label="Send to Saathi"><Send size={16}/></button></form>
       <div className="saathi-float-actions"><button type="button" onClick={onOpenVoice}><Mic size={15}/> Voice mode</button><button type="button" disabled={!latestAnswer} onClick={()=>onSpeak(latestAnswer)}><Volume2 size={15}/> Hear reply</button></div>
     </section>}
@@ -322,7 +360,7 @@ function AssistantCard({orgId,locale,onLocaleDetected,messages,pending,onAsk,onS
 
   function readLatestAnswer() { if (latestAnswer) onSpeak(latestAnswer, locale); }
 
-  return <article className="panel assistant-panel"><div className="assistant-top"><div className="assistant-avatar"><Sparkles size={18}/></div><div><h3>Saathi AI business partner</h3><p>{orgId?"Connected to the shared API":"General AI chat · account data appears when connected"}</p></div><span className="online-pill">{orgId?"API":"AI PARTNER"}</span></div><div className="assistant-messages" aria-live="polite">{messages.length===0?<div className="bot-message"><span className="message-spark"><Sparkles size={14}/></span><div><strong>Talk to Saathi naturally.</strong><br/>Ask about your shop, or say hello and ask what Saathi can do.</div></div>:messages.slice(-4).map((m,i)=><div key={i} className={m.role==="user"?"user-message":"bot-message"}>{m.role==="assistant"&&<span className="message-spark"><Sparkles size={14}/></span>}<div>{m.text}</div></div>)}{pending&&<div className="bot-message"><span className="message-spark"><Sparkles size={14}/></span><div className="typing-dots"><i/><i/><i/></div></div>}</div><div className="assistant-suggestions"><button type="button" disabled={pending} onClick={()=>onAsk("Show sales insights")}>Show sales <ArrowRight size={13}/></button><button type="button" disabled={pending} onClick={()=>onAsk("What settlements are pending?")}>Settlements <ArrowRight size={13}/></button><button type="button" disabled={pending} onClick={()=>onAsk("What can you help me with?")}>What can you do? <ArrowRight size={13}/></button></div><form className="assistant-input" onSubmit={form.handleSubmit(submit)}><input {...form.register("question")} placeholder="Ask Saathi anything…" aria-label="Ask Saathi" disabled={pending}/><button className={`voice-button ${listening?"voice-recording":""}`} type="button" aria-label={listening?"Stop and send voice message":"Record a voice message"} aria-pressed={listening} disabled={pending} onClick={()=>void toggleVoiceInput()}><Mic size={16}/></button><button aria-label="Send message" disabled={pending}><Send size={16}/></button></form>{voiceNotice&&<small className="voice-notice" aria-live="polite">{voiceNotice}</small>}{form.formState.errors.question&&<small className="field-error">{form.formState.errors.question.message}</small>}<div className="assistant-foot"><div className="privacy-note"><ShieldCheck size={13}/> Saathi’s replies are AI-generated; account figures use connected data only.</div><button type="button" className="read-aloud" aria-label="Read latest answer aloud" disabled={!latestAnswer} onClick={readLatestAnswer}><Volume2 size={15}/> Read reply</button></div></article>;
+  return <article className="panel assistant-panel"><div className="assistant-top"><div className="assistant-avatar"><Sparkles size={18}/></div><div><h3>Saathi AI business partner</h3><p>{orgId?"Connected to the shared API":"General AI chat · account data appears when connected"}</p></div><span className="online-pill">{orgId?"API":"AI PARTNER"}</span></div><div className="assistant-messages" aria-live="polite">{messages.length===0?<div className="bot-message"><span className="message-spark"><Sparkles size={14}/></span><div><strong>Talk to Saathi naturally.</strong><br/>Ask about your shop, or say hello and ask what Saathi can do.</div></div>:messages.map((m,i)=><div key={i} className={m.role==="user"?"user-message":"bot-message"}>{m.role==="assistant"&&<span className="message-spark"><Sparkles size={14}/></span>}<div>{m.text}</div></div>)}{pending&&<div className="bot-message"><span className="message-spark"><Sparkles size={14}/></span><div className="typing-dots"><i/><i/><i/></div></div>}</div><div className="assistant-suggestions"><button type="button" disabled={pending} onClick={()=>onAsk("Show sales insights")}>Show sales <ArrowRight size={13}/></button><button type="button" disabled={pending} onClick={()=>onAsk("What settlements are pending?")}>Settlements <ArrowRight size={13}/></button><button type="button" disabled={pending} onClick={()=>onAsk("What can you help me with?")}>What can you do? <ArrowRight size={13}/></button></div><form className="assistant-input" onSubmit={form.handleSubmit(submit)}><input {...form.register("question")} placeholder="Ask Saathi anything…" aria-label="Ask Saathi" disabled={pending}/><button className={`voice-button ${listening?"voice-recording":""}`} type="button" aria-label={listening?"Stop and send voice message":"Record a voice message"} aria-pressed={listening} disabled={pending} onClick={()=>void toggleVoiceInput()}><Mic size={16}/></button><button aria-label="Send message" disabled={pending}><Send size={16}/></button></form>{voiceNotice&&<small className="voice-notice" aria-live="polite">{voiceNotice}</small>}{form.formState.errors.question&&<small className="field-error">{form.formState.errors.question.message}</small>}<div className="assistant-foot"><div className="privacy-note"><ShieldCheck size={13}/> Saathi’s replies are AI-generated; account figures use connected data only.</div><button type="button" className="read-aloud" aria-label="Read latest answer aloud" disabled={!latestAnswer} onClick={readLatestAnswer}><Volume2 size={15}/> Read reply</button></div></article>;
 }
 function AssistantPage(props:Parameters<typeof AssistantCard>[0]) { return <section className="assistant-page"><div className="assistant-page-heading"><div className="eyebrow"><Sparkles size={13}/> YOUR BUSINESS COPILOT</div><h1>Saathi AI</h1><p>Speak or type. Saathi opens the right tool, explains what it can do, and tells you when connected merchant data is needed.</p></div><AssistantCard {...props}/></section>; }
 function ModuleUnavailable({page,onBack}:{page:string;onBack:()=>void}) { const title=page.charAt(0).toUpperCase()+page.slice(1); return <section className="unavailable-page"><div className="eyebrow"><BriefcaseBusiness size={13}/> PAYTM SAATHI</div><div className="unavailable-card"><div className="unavailable-icon"><ReceiptText size={22}/></div><h1>{title}</h1><p>This business area is part of the product plan, but the shared backend contract does not yet expose this service. No sample records or unsupported actions are shown.</p><button className="hero-button" onClick={onBack}>Return to overview <ArrowRight size={15}/></button></div></section>; }

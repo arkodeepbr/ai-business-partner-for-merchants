@@ -13,8 +13,8 @@ from app.assistant import AssistantProviderError, generate_conversational_answer
 from app.auth import current_user, require_membership, issue_access_token
 from app.core.config import get_settings
 from app.db import get_db, engine
-from app.models import Organization, PaymentTransaction, Settlement, User
-from app.schemas import AssistantChatRequest, AuthSessionRequest, AuthSessionResponse, ConversationRequest, ConversationResponse, SalesSummary, TransactionRead
+from app.models import Organization, PaymentTransaction, Settlement, User, UserWorkspaceData
+from app.schemas import AssistantChatRequest, AuthSessionRequest, AuthSessionResponse, ConversationRequest, ConversationResponse, SalesSummary, TransactionRead, WorkspaceDataResponse, WorkspaceDataUpdate
 from app.analytics import sales_summary
 
 settings = get_settings()
@@ -106,6 +106,31 @@ def me(user: User = Depends(current_user), db: Session = Depends(get_db)):
     from app.models import Membership
     memberships = db.scalars(select(Membership).where(Membership.user_id == user.id)).all()
     return {"user_id": user.id, "organizations": [{"id": m.organization_id, "role": m.role} for m in memberships]}
+
+
+@app.get("/api/v1/me/workspace", response_model=WorkspaceDataResponse)
+def get_workspace_data(user: User = Depends(current_user), db: Session = Depends(get_db)):
+    workspace = db.get(UserWorkspaceData, user.id)
+    if not workspace:
+        return WorkspaceDataResponse(assistant_messages=[], preferred_locale="en")
+    return WorkspaceDataResponse(assistant_messages=workspace.assistant_messages, preferred_locale=workspace.preferred_locale)
+
+
+@app.patch("/api/v1/me/workspace", response_model=WorkspaceDataResponse)
+def update_workspace_data(body: WorkspaceDataUpdate, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    if not body.model_fields_set:
+        raise HTTPException(422, "workspace_update_required")
+    workspace = db.get(UserWorkspaceData, user.id)
+    if not workspace:
+        workspace = UserWorkspaceData(user_id=user.id)
+        db.add(workspace)
+    if "assistant_messages" in body.model_fields_set and body.assistant_messages is not None:
+        workspace.assistant_messages = [message.model_dump() for message in body.assistant_messages[-200:]]
+    if body.preferred_locale is not None:
+        workspace.preferred_locale = body.preferred_locale
+    db.commit()
+    db.refresh(workspace)
+    return WorkspaceDataResponse(assistant_messages=workspace.assistant_messages, preferred_locale=workspace.preferred_locale)
 
 
 @app.post("/api/v1/assistant/chat", response_model=ConversationResponse)
