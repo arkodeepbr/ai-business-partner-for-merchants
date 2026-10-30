@@ -27,6 +27,7 @@ export default function LoginForm() {
   const [error, setError] = useState("");
   const report = (message: string) => { setError(message); setNotice(""); };
   const success = (message: string) => { setNotice(message); setError(""); };
+  const passwordRecoveryRedirect = () => `${location.origin}/auth/callback?next=${encodeURIComponent("/login?mode=update-password")}`;
 
   async function act(event: FormEvent) {
     event.preventDefault(); setBusy(true); setError(""); setNotice("");
@@ -42,7 +43,7 @@ export default function LoginForm() {
         if (authError) throw authError;
         router.replace("/"); router.refresh();
       } else if (mode === "email-otp" && !emailCodeSent) {
-        const result = emailOtpPurpose === "recovery" ? await supabase.auth.resetPasswordForEmail(email) : emailOtpPurpose === "signup" ? await supabase.auth.resend({ type: "signup", email }) : await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+        const result = emailOtpPurpose === "recovery" ? await supabase.auth.resetPasswordForEmail(email, { redirectTo: passwordRecoveryRedirect() }) : emailOtpPurpose === "signup" ? await supabase.auth.resend({ type: "signup", email }) : await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
         if (result.error) throw result.error;
         setEmailCodeSent(true); success("A verification code has been sent to your email.");
       } else if (mode === "email-otp") {
@@ -62,15 +63,20 @@ export default function LoginForm() {
         if (phoneOtpPurpose === "recovery") { setMode("update-password"); setPassword(""); success("Phone verified. Choose your new password."); }
         else { router.replace("/"); router.refresh(); }
       } else if (mode === "forgot") {
-        const { error: authError } = await supabase.auth.resetPasswordForEmail(email);
+        const { error: authError } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: passwordRecoveryRedirect() });
         if (authError) throw authError;
-        setEmailOtpPurpose("recovery"); setEmailCodeSent(true); setOtp(""); setMode("email-otp"); success("A password reset code has been sent to your email. Enter it to choose a new password.");
+        success("A password reset link was sent. Open it in this browser to choose a new password.");
       } else if (mode === "update-password") {
         const { error: authError } = await supabase.auth.updateUser({ password });
         if (authError) throw authError;
         success("Your password has been changed."); router.replace("/"); router.refresh();
       }
-    } catch (reason) { report(reason instanceof Error ? reason.message : "Could not complete that request."); }
+    } catch (reason) {
+      const detail = reason instanceof Error ? reason.message : "Could not complete that request.";
+      report(mode === "phone-otp" && !phoneCodeSent
+        ? `Supabase could not send the SMS. Phone sign-in and an SMS provider must be enabled in Supabase Auth, and this number must be verified on the account. Details: ${detail}`
+        : detail);
+    }
     finally { setBusy(false); }
   }
 
@@ -79,7 +85,7 @@ export default function LoginForm() {
     if (!supabase) { report("Add Supabase URL and publishable key in web/.env.local first."); return; }
     if (!email) { report("Enter your email address first."); return; }
     setBusy(true); setError("");
-    const result = emailOtpPurpose === "recovery" ? await supabase.auth.resetPasswordForEmail(email) : emailOtpPurpose === "signup" ? await supabase.auth.resend({ type: "signup", email }) : await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+    const result = emailOtpPurpose === "recovery" ? await supabase.auth.resetPasswordForEmail(email, { redirectTo: passwordRecoveryRedirect() }) : emailOtpPurpose === "signup" ? await supabase.auth.resend({ type: "signup", email }) : await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
     setBusy(false);
     if (result.error) report(result.error.message); else success("A fresh code has been sent to your email.");
   }
@@ -93,8 +99,8 @@ export default function LoginForm() {
   }
 
   const isOtp = mode === "email-otp" || mode === "phone-otp";
-  const title = mode === "signup" ? "Create your account" : mode === "forgot" ? "Reset your password" : mode === "update-password" ? "Choose a new password" : mode === "phone-otp" && !phoneCodeSent ? phoneOtpPurpose === "recovery" ? "Reset password by SMS" : "Sign in with your phone" : mode === "email-otp" && !emailCodeSent ? "Sign in with email code" : isOtp ? "Enter your verification code" : "Welcome back";
-  const caption = mode === "signup" ? "A smarter business day starts here." : mode === "forgot" ? "We’ll email you a secure verification code." : mode === "update-password" ? "Set a strong password for your account." : mode === "phone-otp" && !phoneCodeSent ? "Enter your number with country code to receive a one-time SMS." : mode === "email-otp" && !emailCodeSent ? "Enter your email to receive a one-time sign-in code." : isOtp ? `We sent a code to ${mode === "phone-otp" ? phone : email}.` : "Sign in to your Paytm Saathi workspace.";
+  const title = mode === "signup" ? "Create your account" : mode === "forgot" ? "Reset your password" : mode === "update-password" ? "Choose a new password" : mode === "phone-otp" && !phoneCodeSent ? phoneOtpPurpose === "recovery" ? "Reset password by SMS" : "Sign in with your phone" : mode === "email-otp" && !emailCodeSent ? emailOtpPurpose === "recovery" ? "Reset with email code" : "Sign in with email code" : isOtp ? "Enter your verification code" : "Welcome back";
+  const caption = mode === "signup" ? "A smarter business day starts here." : mode === "forgot" ? "We’ll email you a secure reset link. You can choose code verification below instead." : mode === "update-password" ? "Set a strong password for your account." : mode === "phone-otp" && !phoneCodeSent ? phoneOtpPurpose === "recovery" ? "Use a verified phone number already linked to your account. SMS delivery must be configured in Supabase." : "Enter your number with country code to receive a one-time SMS." : mode === "email-otp" && emailOtpPurpose === "recovery" && !emailCodeSent ? "Enter your email to receive a recovery code. Your Supabase Reset Password email template must include {{ .Token }}." : mode === "email-otp" && !emailCodeSent ? "Enter your email to receive a one-time sign-in code." : isOtp ? `We sent a code to ${mode === "phone-otp" ? phone : email}.` : "Sign in to your Paytm Saathi workspace.";
 
   return <main className="auth-page"><div className="auth-glow auth-glow-one"/><div className="auth-glow auth-glow-two"/>
     <Link href="/" className="auth-back"><ArrowLeft size={16}/> Back to Saathi</Link>
@@ -109,11 +115,13 @@ export default function LoginForm() {
         {(mode === "signup" || mode === "signin" || mode === "update-password") && <label>{mode === "update-password" ? "New password" : "Password"}<span className="auth-input"><KeyRound size={17}/><input type={showPassword ? "text" : "password"} required minLength={8} autoComplete={mode === "signin" ? "current-password" : "new-password"} placeholder="At least 8 characters" value={password} onChange={(event) => setPassword(event.target.value)}/><button type="button" className="password-toggle" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={16}/> : <Eye size={16}/>}</button></span></label>}
         {((mode === "email-otp" && emailCodeSent) || (mode === "phone-otp" && phoneCodeSent)) && <label>Verification code<span className="auth-input"><ShieldCheck size={17}/><input inputMode="numeric" autoComplete="one-time-code" required minLength={6} maxLength={8} placeholder="Enter your code" value={otp} onChange={(event) => setOtp(event.target.value)}/></span></label>}
         {error && <div className="auth-message auth-error" role="alert">{error}</div>}{notice && <div className="auth-message auth-success" role="status">{notice}</div>}
-        <button className="auth-submit" disabled={busy} type="submit">{busy ? <LoaderCircle className="auth-spinner" size={17}/> : null}{mode === "phone-otp" && !phoneCodeSent ? "Send SMS code" : mode === "email-otp" && !emailCodeSent ? "Send email code" : isOtp ? "Verify code" : mode === "signup" ? "Create account" : mode === "forgot" ? "Send reset code" : mode === "update-password" ? "Save new password" : "Sign in"}<span>→</span></button>
+        <button className="auth-submit" disabled={busy} type="submit">{busy ? <LoaderCircle className="auth-spinner" size={17}/> : null}{mode === "phone-otp" && !phoneCodeSent ? "Send SMS code" : mode === "email-otp" && !emailCodeSent ? emailOtpPurpose === "recovery" ? "Send recovery code" : "Send email code" : isOtp ? "Verify code" : mode === "signup" ? "Create account" : mode === "forgot" ? "Send reset link" : mode === "update-password" ? "Save new password" : "Sign in"}<span>→</span></button>
       </form>
       <div className="auth-links">
         {mode === "signin" && <><button type="button" onClick={() => { setMode("forgot"); setEmailOtpPurpose("recovery"); setError(""); setNotice(""); }}>Forgot password?</button><button type="button" onClick={() => { setMode("phone-otp"); setPhoneOtpPurpose("recovery"); setPhoneCodeSent(false); setError(""); setNotice(""); }}>Reset password by SMS code</button><button type="button" onClick={() => { setEmailOtpPurpose("login"); setMode("email-otp"); setError(""); setNotice(""); }}>Sign in with email code</button><button type="button" onClick={() => { setPhoneOtpPurpose("login"); setPhoneCodeSent(false); setMode("phone-otp"); setError(""); setNotice(""); }}><Phone size={13}/> Use phone and SMS code</button><p>New to Saathi? <button type="button" onClick={() => { setMode("signup"); setError(""); setNotice(""); }}>Create an account</button></p></>}
         {mode === "signup" && <p>Already have an account? <button type="button" onClick={() => setMode("signin")}>Sign in</button></p>}
+        {mode === "forgot" && <p>Prefer a code? <button type="button" onClick={() => { setEmailOtpPurpose("recovery"); setEmailCodeSent(false); setOtp(""); setMode("email-otp"); setError(""); setNotice(""); }}>Use email code instead</button></p>}
+        {mode === "email-otp" && emailOtpPurpose === "recovery" && <p>Prefer a link? <button type="button" onClick={() => { setMode("forgot"); setEmailCodeSent(false); setError(""); setNotice(""); }}>Use reset link instead</button></p>}
         {(mode === "forgot" || isOtp || mode === "update-password") && <p><button type="button" onClick={() => { setMode("signin"); setError(""); setNotice(""); }}>Back to sign in</button></p>}
       </div>
       {mode === "email-otp" && emailCodeSent && <button className="resend-code" type="button" onClick={() => void resendEmailCode()} disabled={busy}>Resend email code</button>}
