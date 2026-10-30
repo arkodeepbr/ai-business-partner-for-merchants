@@ -10,7 +10,7 @@ export async function POST(request: Request) {
   }
 
   const apiKey = process.env.ELEVENLABS_API_KEY;
-  const voiceId = process.env.ELEVENLABS_VOICE_ID;
+  const voiceId = process.env.ELEVENLABS_VOICE_ID || "EXAVITQu4vr4xnSDxMaL";
   if (!apiKey || !voiceId) {
     return NextResponse.json({ error: "voice_provider_not_configured" }, { status: 503 });
   }

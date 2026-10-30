@@ -40,7 +40,7 @@ The backend does not yet expose login/OTP/session creation, so a merchant cannot
 
 ### ElevenLabs voice replies
 
-The web server proxies text-to-speech requests to ElevenLabs so the API key never enters the browser. Copy `.env.example` to `.env.local`, then set `ELEVENLABS_API_KEY` and a voice ID from your ElevenLabs account. The multilingual model setting is prefilled. When those values are absent or the provider is unavailable, Saathi falls back to browser speech. The floating assistant stays at the lower-right of the screen and offers **Hear reply** for browser autoplay restrictions. See the [ElevenLabs text-to-speech API](https://elevenlabs.io/docs/api-reference/text-to-speech/convert).
+The web server proxies text-to-speech requests to ElevenLabs so the API key never enters the browser. Copy `.env.example` to `.env.local` and set `ELEVENLABS_API_KEY`; the provided voice ID and multilingual model are already configured. When the key is absent or the provider is unavailable, Saathi falls back to browser speech. The floating assistant stays at the lower-right of the screen and offers **Hear reply** for browser autoplay restrictions. See the [ElevenLabs text-to-speech API](https://elevenlabs.io/docs/api-reference/text-to-speech/convert).
 
 ### AI and Paytm provider setup
 
