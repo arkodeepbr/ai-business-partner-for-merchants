@@ -30,7 +30,8 @@ The image runs as a non-root user and includes a basic HTTP health check. Termin
 
 - Responsive browser shell based on the current Paytm Saathi concept preview's palette, typography, card treatment, and navigation.
 - Uses short lived bearer token state in memory and calls the shared `/me`, sales summary, transactions, and assistant endpoints.
-- Displays empty, loading, unavailable, and provider-not-configured states without substituting concept-preview figures.
+- In disconnected demo mode, shows clearly labelled sample sales, daily collections, transactions, and settlements. Once an authorized merchant organization is connected, the sample figures disappear and only API data is shown.
+- The local demo assistant answers sales totals, today/yesterday, best day, daily breakdown, average payment, failed payments, payment methods, recent transactions, and sample settlements from the seeded dataset.
 - An accessible English/Hindi language selector currently translates core navigation labels only.
 - Voice requests use the browser microphone permission and speech recognition; text commands remain available in every browser. Saathi automatically speaks replies through a same-origin ElevenLabs proxy when configured, falls back to browser speech otherwise, and keeps a floating assistant with a “Hear reply” control on every page.
 - Other business areas clearly report that their shared API services are unavailable rather than presenting nonfunctional forms or fake offers.
