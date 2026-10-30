@@ -30,7 +30,7 @@ const money = (minor: number, currency = "INR") => new Intl.NumberFormat("en-IN"
 function shortSpokenReply(text: string) {
   const firstSentences = text.trim().split(/(?<=[.!?।])\s+/u).slice(0, 2).join(" ");
   const words = firstSentences.split(/\s+/u);
-  return words.length > 65 ? `${words.slice(0, 65).join(" ")}…` : firstSentences;
+  return words.length > 120 ? `${words.slice(0, 120).join(" ")}…` : firstSentences;
 }
 
 export function MerchantApp() {
