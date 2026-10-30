@@ -113,6 +113,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Exchange a verified Supabase access token for a Saathi API session */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        access_token: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Short lived Saathi API bearer session */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            access_token: string;
+                            /** @enum {string} */
+                            token_type: "bearer";
+                            expires_in: number;
+                        };
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                /** @description A verified email or phone is required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Verified email and phone belong to different existing API accounts */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Supabase session validation is not configured or temporarily unavailable */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/organizations/{organization_id}/analytics/sales": {
         parameters: {
             query?: never;

@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=75,<76"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "paytm-saathi-backend"
+version = "0.1.0"
+description = "Tenant-scoped API foundation for Paytm Saathi"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+  "fastapi==0.115.12",
+  "uvicorn[standard]==0.34.2",
+  "pydantic-settings==2.9.1",
+  "sqlalchemy==2.0.40",
+  "psycopg[binary]==3.2.6",
+  "alembic==1.15.2",
+  "PyJWT[crypto]==2.10.1",
+  "redis==5.2.1",
+  "celery==5.4.0",
+  "structlog==25.2.0",
+  "prometheus-client==0.22.0",
+  "opentelemetry-api==1.32.1",
+  "opentelemetry-sdk==1.32.1",
+  "opentelemetry-instrumentation-fastapi==0.53b1",
+  "boto3==1.37.30",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==8.3.5", "httpx==0.28.1", "ruff==0.11.5"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100

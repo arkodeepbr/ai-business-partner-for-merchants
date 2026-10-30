@@ -1,0 +1,188 @@
+openapi: 3.1.0
+info:
+  title: Paytm Saathi Shared API
+  version: 1.0.0
+  description: Shared Android and web contract. Only currently implemented backend endpoints are listed.
+servers:
+  - url: http://localhost:8000
+    description: Local backend
+security:
+  - bearerAuth: []
+paths:
+  /health/live:
+    get:
+      security: []
+      tags: [operations]
+      responses:
+        '200': { description: Process is alive }
+  /health/ready:
+    get:
+      security: []
+      tags: [operations]
+      responses:
+        '200': { description: Database is reachable }
+        '503': { description: Database is unavailable }
+  /api/v1/me:
+    get:
+      tags: [identity]
+      responses:
+        '200':
+          description: Authenticated user and organization memberships
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MeResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/v1/auth/session:
+    post:
+      security: []
+      tags: [identity]
+      summary: Exchange a verified Supabase access token for a Saathi API session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [access_token]
+              properties:
+                access_token: { type: string, minLength: 20 }
+      responses:
+        '200':
+          description: Short lived Saathi API bearer session
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [access_token, token_type, expires_in]
+                properties:
+                  access_token: { type: string }
+                  token_type: { type: string, enum: [bearer] }
+                  expires_in: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: A verified email or phone is required }
+        '409': { description: Verified email and phone belong to different existing API accounts }
+        '503': { description: Supabase session validation is not configured or temporarily unavailable }
+  /api/v1/organizations/{organization_id}/analytics/sales:
+    get:
+      tags: [analytics]
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - name: from_at
+          in: query
+          required: true
+          schema: { type: string, format: date-time }
+        - name: to_at
+          in: query
+          required: true
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Gross successful payment collection in a half-open time window
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SalesSummary' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { description: Invalid time range or mixed currencies }
+  /api/v1/organizations/{organization_id}/transactions:
+    get:
+      tags: [transactions]
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+      responses:
+        '200':
+          description: Recent transactions belonging to this organization
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Transaction' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/v1/organizations/{organization_id}/assistant:
+    post:
+      tags: [assistant]
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AssistantRequest' }
+      responses:
+        '200':
+          description: Safe response; reports unavailable provider until grounded runtime is configured
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AssistantResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    OrganizationId:
+      name: organization_id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  responses:
+    Unauthorized:
+      description: Missing, invalid, or expired access token
+    NotFound:
+      description: Organization is absent or inaccessible to this user
+  schemas:
+    MeResponse:
+      type: object
+      required: [user_id, organizations]
+      properties:
+        user_id: { type: string }
+        organizations:
+          type: array
+          items:
+            type: object
+            required: [id, role]
+            properties:
+              id: { type: string }
+              role: { type: string }
+    AssistantRequest:
+      type: object
+      required: [question]
+      properties:
+        question: { type: string, minLength: 1, maxLength: 2000 }
+    AssistantResponse:
+      type: object
+      required: [answer, evidence, grounded]
+      properties:
+        answer: { type: string }
+        evidence: { type: object, additionalProperties: true }
+        grounded: { type: boolean }
+    SalesSummary:
+      type: object
+      required: [organization_id, from_at, to_at, currency, gross_collections_minor, transaction_count, average_transaction_minor, definition, data_source]
+      properties:
+        organization_id: { type: string, format: uuid }
+        from_at: { type: string, format: date-time }
+        to_at: { type: string, format: date-time }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        gross_collections_minor: { type: integer, format: int64 }
+        transaction_count: { type: integer }
+        average_transaction_minor: { type: integer, format: int64 }
+        definition: { type: string }
+        data_source: { type: string }
+    Transaction:
+      type: object
+      required: [id, occurred_at, amount_minor, currency, status]
+      properties:
+        id: { type: string, format: uuid }
+        occurred_at: { type: string, format: date-time }
+        amount_minor: { type: integer, format: int64 }
+        currency: { type: string }
+        status: { type: string }
+        payment_method: { type: [string, 'null'] }

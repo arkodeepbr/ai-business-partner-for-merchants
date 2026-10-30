@@ -14,6 +14,8 @@ import { interpretSaathiCommand } from "@/lib/saathi-commands";
 import { answerDemoQuestion, DEMO_DAILY_SALES, DEMO_PENDING_SETTLEMENT, DEMO_RANGE, DEMO_SALES_SUMMARY, DEMO_TRANSACTIONS } from "@/lib/demo-data";
 import { speakSaathi, type VoiceLocale } from "@/lib/voice";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { createClient as createSupabaseClient } from "@/lib/supabase/client";
 
 const chatSchema = z.object({ question: z.string().trim().min(1, "Write a question first").max(2000) });
 type ChatForm = z.infer<typeof chatSchema>;
@@ -39,6 +41,7 @@ export function MerchantApp() {
   const spokenAssistantIndexRef = useRef(-1);
   const token = useSession((state) => state.accessToken);
   const setToken = useSession((state) => state.setAccessToken);
+  const email = useSession((state) => state.email);
   const locale = useLocalePreference((state) => state.locale);
   const setLocale = useLocalePreference((state) => state.setLocale);
   const period = useMemo(() => currentWeek(), []);
@@ -122,6 +125,12 @@ export function MerchantApp() {
     chatForm.reset();
   }
 
+  async function signOut() {
+    const supabase = createSupabaseClient();
+    if (supabase) await supabase.auth.signOut();
+    setToken(null); setOrgId("");
+  }
+
   return <div className="app-shell">
     <span ref={cursorRef} className="cinematic-cursor" aria-hidden="true" />
     {commandNotice && <div className="command-toast" role="status"><Sparkles size={16}/><span>{commandNotice}</span><button type="button" className="toast-speak" aria-label="Speak Saathi message" title="Speak this message" onClick={() => void speakReply(commandNotice)}><Volume2 size={15}/></button><button type="button" aria-label="Dismiss Saathi message" onClick={() => setCommandNotice("")}><X size={15}/></button></div>}
@@ -133,11 +142,11 @@ export function MerchantApp() {
       <nav className="nav-list" aria-label="Business navigation">{nav.map((item) => { const Icon = item.icon; return <button key={item.key} className={`nav-item ${page === item.key ? "active" : ""}`} onClick={() => { setPage(item.key); setMobileNavOpen(false); }}><Icon size={18}/><span>{item.label}</span>{item.key === "sales" && <i className="nav-new">NEW</i>}</button>; })}</nav>
       <p className="nav-label tools-label">TOOLS</p>
       <nav className="nav-list" aria-label="Tools"><button className={`nav-item ${page === "assistant" ? "active" : ""}`} onClick={() => { setCommandNotice(""); setPage("assistant"); setMobileNavOpen(false); }}><Bot size={18}/><span>Saathi AI</span></button><button className={`nav-item ${page === "settings" ? "active" : ""}`} onClick={() => { setPage("settings"); setMobileNavOpen(false); }}><Settings2 size={18}/><span>Settings</span></button></nav>
-      <div className="sidebar-bottom"><div className="help-card"><div className="help-orbit"><CircleHelp size={17}/></div><strong>Need a hand?</strong><span>Merchant support and help.</span><button onClick={() => setPage("support")}>Get support <ArrowRight size={14}/></button></div><div className="profile-row"><div className="profile-avatar">{token ? "M" : "?"}</div><span><strong>{token ? "Merchant user" : "Not signed in"}</strong><small>{token ? "Account member" : "Connect to get started"}</small></span><button className="icon-quiet" aria-label="Sign out" onClick={() => { setToken(null); setOrgId(""); }}>···</button></div></div>
+      <div className="sidebar-bottom"><div className="help-card"><div className="help-orbit"><CircleHelp size={17}/></div><strong>Need a hand?</strong><span>Merchant support and help.</span><button onClick={() => setPage("support")}>Get support <ArrowRight size={14}/></button></div><div className="profile-row"><div className="profile-avatar">{email ? email.slice(0,1).toUpperCase() : "?"}</div><span><strong>{email ?? "Not signed in"}</strong><small>{email ? "Saathi account" : "Connect to get started"}</small></span>{email ? <button className="icon-quiet" aria-label="Sign out" title="Sign out" onClick={() => void signOut()}>↪</button> : <Link className="profile-login-link" href="/login">Sign in</Link>}</div></div>
     </aside>
     {mobileNavOpen && <button aria-label="Close navigation" className="nav-scrim" onClick={() => setMobileNavOpen(false)}/>}
     <main className="main-content">
-      <header className="topbar"><button className="mobile-menu icon-quiet" aria-label="Open navigation" onClick={() => setMobileNavOpen(true)}><Menu size={20}/></button><div className="breadcrumb"><span>My business</span><b>/</b><strong>{page === "overview" ? labels.overview : nav.find((item) => item.key === page)?.label ?? (page === "assistant" ? "Saathi AI" : page)}</strong></div><div className="top-actions"><span className={`connection-pill ${demoMode ? "demo-pill" : ""}`}><i className={demoMode ? "" : "connected"}/>{demoMode ? "DEMO DATA" : "CONNECTED ACCOUNT"}</span><label className="language-picker"><span className="sr-only">Language</span><select aria-label="Language" value={locale} onChange={(event)=>setLocale(event.target.value as "en"|"hi")}><option value="en">EN</option><option value="hi">हि</option></select></label><button className="icon-button" aria-label="Notifications" onClick={() => setPage("notifications")}><Bell size={18}/></button><div className="top-avatar">{token ? "M" : "?"}</div></div></header>
+      <header className="topbar"><button className="mobile-menu icon-quiet" aria-label="Open navigation" onClick={() => setMobileNavOpen(true)}><Menu size={20}/></button><div className="breadcrumb"><span>My business</span><b>/</b><strong>{page === "overview" ? labels.overview : nav.find((item) => item.key === page)?.label ?? (page === "assistant" ? "Saathi AI" : page)}</strong></div><div className="top-actions"><span className={`connection-pill ${demoMode ? "demo-pill" : ""}`}><i className={demoMode ? "" : "connected"}/>{demoMode ? "DEMO DATA" : "CONNECTED ACCOUNT"}</span><label className="language-picker"><span className="sr-only">Language</span><select aria-label="Language" value={locale} onChange={(event)=>setLocale(event.target.value as "en"|"hi")}><option value="en">EN</option><option value="hi">हि</option></select></label><button className="icon-button" aria-label="Notifications" onClick={() => setPage("notifications")}><Bell size={18}/></button>{email ? <button className="top-auth-button" onClick={() => void signOut()}>Sign out</button> : <Link className="top-auth-button" href="/login">Sign in</Link>}</div></header>
       <div className="page-wrap">
         {page === "overview" || page === "sales" || page === "cashflow" ? <>
           <section className="greeting-row"><div><div className="eyebrow"><Sparkles size={13}/> MERCHANT GROWTH PARTNER</div><h1>{page === "overview" ? "Your business, understood." : page === "sales" ? "Sales insights" : "Cash flow"}</h1><p className="subheading">{page === "overview" ? "Your business information will appear here when your merchant account is connected." : "Insights use authorized account data and explain how each figure is calculated."}</p></div><div className="date-select" aria-label="Reporting period">◷ <span>{demoMode ? DEMO_RANGE : "Last 7 days"}</span><ChevronDown size={15}/></div></section>
