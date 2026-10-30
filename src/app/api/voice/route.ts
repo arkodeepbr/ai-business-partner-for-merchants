@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,9 +10,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "same_origin_required" }, { status: 403 });
   }
 
-  const apiKey = process.env.ELEVENLABS_API_KEY;
   const voiceId = process.env.ELEVENLABS_VOICE_ID || "EXAVITQu4vr4xnSDxMaL";
-  if (!apiKey || !voiceId) {
+  if (!process.env.ELEVENLABS_API_KEY) {
     return NextResponse.json({ error: "voice_provider_not_configured" }, { status: 503 });
   }
 
@@ -25,20 +25,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "text_must_be_between_1_and_1200_characters" }, { status: 422 });
   }
 
-  const modelId = process.env.ELEVENLABS_MODEL_ID || "eleven_multilingual_v2";
+  const modelId = process.env.ELEVENLABS_MODEL_ID || "eleven_v4";
   try {
-    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}?output_format=mp3_44100_128`, {
-      method: "POST",
-      headers: { "xi-api-key": apiKey, "Content-Type": "application/json", Accept: "audio/mpeg" },
-      body: JSON.stringify({ text: text.trim(), model_id: modelId }),
-      cache: "no-store",
-      signal: AbortSignal.timeout(25_000),
+    const client = new ElevenLabsClient();
+    const audio = await client.textToSpeech.convert(voiceId, {
+      text: text.trim(),
+      modelId,
+      outputFormat: "mp3_44100_128",
     });
-    if (!response.ok) {
-      return NextResponse.json({ error: "voice_provider_unavailable" }, { status: 502 });
-    }
-    return new Response(response.body, {
-      headers: { "Content-Type": response.headers.get("content-type") || "audio/mpeg", "Cache-Control": "no-store" },
+    return new Response(audio, {
+      headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store" },
     });
   } catch {
     return NextResponse.json({ error: "voice_provider_unavailable" }, { status: 502 });
