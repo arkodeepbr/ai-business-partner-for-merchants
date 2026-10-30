@@ -182,6 +182,75 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/me/finance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read the signed-in user's private loans, IOU ledger, and recorded transfer history */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Account-owned finance records */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FinanceRecords"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+            };
+        };
+        /** Save the signed-in user's private finance records */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["FinanceRecordsUpdate"];
+                };
+            };
+            responses: {
+                /** @description Updated account-owned finance records */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FinanceRecords"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                /** @description Invalid finance record */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/session": {
         parameters: {
             query?: never;
@@ -449,6 +518,26 @@ export interface components {
             assistant_messages?: components["schemas"]["WorkspaceMessage"][];
             /** @enum {string} */
             preferred_locale?: "en" | "hi" | "kn";
+        };
+        FinanceRecord: {
+            id: string;
+            /** @enum {string} */
+            kind: "money_lent" | "money_repaid" | "loan_taken" | "loan_payment" | "transfer_recorded";
+            name: string;
+            phone?: string | null;
+            amount_minor: number;
+            /** Format: date-time */
+            occurred_at: string;
+            /** Format: date */
+            due_date?: string | null;
+            related_record_id?: string | null;
+            note?: string | null;
+        };
+        FinanceRecords: {
+            records: components["schemas"]["FinanceRecord"][];
+        };
+        FinanceRecordsUpdate: {
+            records: components["schemas"]["FinanceRecord"][];
         };
         AssistantRequest: {
             question: string;

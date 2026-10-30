@@ -59,6 +59,33 @@ paths:
               schema: { $ref: '#/components/schemas/WorkspaceData' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '422': { description: Invalid workspace data }
+  /api/v1/me/finance:
+    get:
+      tags: [identity]
+      summary: Read the signed-in user's private loans, IOU ledger, and recorded transfer history
+      responses:
+        '200':
+          description: Account-owned finance records
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FinanceRecords' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    put:
+      tags: [identity]
+      summary: Save the signed-in user's private finance records
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FinanceRecordsUpdate' }
+      responses:
+        '200':
+          description: Updated account-owned finance records
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FinanceRecords' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { description: Invalid finance record }
   /api/v1/auth/session:
     post:
       security: []
@@ -214,6 +241,33 @@ components:
           type: array
           items: { $ref: '#/components/schemas/WorkspaceMessage' }
         preferred_locale: { type: string, enum: [en, hi, kn] }
+    FinanceRecord:
+      type: object
+      required: [id, kind, name, amount_minor, occurred_at]
+      properties:
+        id: { type: string, minLength: 1, maxLength: 64 }
+        kind: { type: string, enum: [money_lent, money_repaid, loan_taken, loan_payment, transfer_recorded] }
+        name: { type: string, minLength: 1, maxLength: 120 }
+        phone: { type: [string, 'null'], maxLength: 30 }
+        amount_minor: { type: integer, minimum: 1, maximum: 100000000000 }
+        occurred_at: { type: string, format: date-time }
+        due_date: { type: [string, 'null'], format: date }
+        related_record_id: { type: [string, 'null'], maxLength: 64 }
+        note: { type: [string, 'null'], maxLength: 300 }
+    FinanceRecords:
+      type: object
+      required: [records]
+      properties:
+        records:
+          type: array
+          items: { $ref: '#/components/schemas/FinanceRecord' }
+    FinanceRecordsUpdate:
+      type: object
+      required: [records]
+      properties:
+        records:
+          type: array
+          items: { $ref: '#/components/schemas/FinanceRecord' }
     AssistantRequest:
       type: object
       required: [question]

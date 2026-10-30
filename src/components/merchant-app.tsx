@@ -8,7 +8,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Activity, ArrowRight, Bell, Bot, BriefcaseBusiness, ChartNoAxesCombined, ChevronDown, CircleHelp, CreditCard, FileChartColumn, Menu, Mic, Package, ReceiptText, Send, Settings2, ShieldCheck, Sparkles, Users, Volume2, WalletCards, X } from "lucide-react";
-import { api, type AssistantResponse, type Transaction } from "@/lib/api";
+import { api, type AssistantResponse, type FinanceRecord, type Transaction } from "@/lib/api";
+import { CashflowPage, CustomersPage, LoansPage, SalesInsightsPage } from "@/components/business-pages";
 import { useSession } from "@/lib/auth";
 import { useLocalePreference, type Locale } from "@/lib/locale";
 import { interpretSaathiCommand } from "@/lib/saathi-commands";
@@ -49,6 +50,8 @@ export function MerchantApp() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; text: string }[]>([]);
   const [workspaceReadyToken, setWorkspaceReadyToken] = useState<string | null>(null);
+  const [financeRecords, setFinanceRecords] = useState<FinanceRecord[]>([]);
+  const [financeReadyToken, setFinanceReadyToken] = useState<string | null>(null);
   const [commandNotice, setCommandNotice] = useState("");
   const [floatingAssistantOpen, setFloatingAssistantOpen] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState("Browser voice ready");
@@ -62,6 +65,7 @@ export function MerchantApp() {
   const locale = useLocalePreference((state) => state.locale);
   const setLocale = useLocalePreference((state) => state.setLocale);
   const workspaceSaveSequence = useRef(0);
+  const financeSaveSequence = useRef(0);
   const period = useMemo(() => currentWeek(), []);
   const meQuery = useQuery({ queryKey: ["me", token], queryFn: api.me, enabled: !!token });
   const selectedOrg = orgId || meQuery.data?.organizations[0]?.id || "";
@@ -69,6 +73,24 @@ export function MerchantApp() {
   const salesQuery = useQuery({ queryKey: ["sales", selectedOrg, period], queryFn: () => api.sales(selectedOrg, period.start, period.end), enabled: !!token && !!selectedOrg });
   const transactionsQuery = useQuery({ queryKey: ["transactions", selectedOrg], queryFn: () => api.transactions(selectedOrg), enabled: !!token && !!selectedOrg });
   const visibleMessages = token && workspaceReadyToken !== token ? [] : messages;
+
+  useEffect(() => {
+    if (!token) { queueMicrotask(() => { setFinanceRecords([]); setFinanceReadyToken(null); }); return; }
+    let active = true;
+    void api.finance().then((result) => { if (active) { setFinanceRecords(result.records); setFinanceReadyToken(token); } }).catch((error: unknown) => { console.error("Could not load account finance records", error); });
+    return () => { active = false; };
+  }, [token]);
+
+  useEffect(() => {
+    if (!token || financeReadyToken !== token) return;
+    const ownerToken = token;
+    const sequence = ++financeSaveSequence.current;
+    const timer = window.setTimeout(() => {
+      if (financeSaveSequence.current !== sequence || useSession.getState().accessToken !== ownerToken) return;
+      void api.saveFinance(financeRecords).catch((error: unknown) => console.error("Could not save account finance records", error));
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [financeRecords, token, financeReadyToken]);
 
   useEffect(() => {
     if (!token) { queueMicrotask(() => setMessages([])); return; }
@@ -211,6 +233,10 @@ export function MerchantApp() {
     chatForm.reset();
   }
 
+  function addFinanceRecord(record: Omit<FinanceRecord, "id" | "occurred_at">) {
+    setFinanceRecords((items) => [...items, { ...record, id: crypto.randomUUID(), occurred_at: new Date().toISOString() }]);
+  }
+
   async function signOut() {
     const supabase = createSupabaseClient();
     if (supabase) await supabase.auth.signOut();
@@ -234,14 +260,14 @@ export function MerchantApp() {
     <main className="main-content">
       <header className="topbar"><button className="mobile-menu icon-quiet" aria-label="Open navigation" onClick={() => setMobileNavOpen(true)}><Menu size={20}/></button><div className="breadcrumb"><span>My business</span><b>/</b><strong>{page === "overview" ? labels.overview : nav.find((item) => item.key === page)?.label ?? (page === "assistant" ? "Saathi AI" : page)}</strong></div><div className="top-actions"><span className={`connection-pill ${demoMode ? "demo-pill" : ""}`}><i className={demoMode ? "" : "connected"}/>{demoMode ? "DEMO DATA" : "CONNECTED ACCOUNT"}</span><label className="language-picker"><span className="sr-only">Language</span><select aria-label="Language" value={locale} onChange={(event)=>setLocale(event.target.value as Locale)}><option value="en">EN</option><option value="hi">हि</option><option value="kn">ಕನ್ನಡ</option></select></label><span className="top-user-name">{accountLabel}</span><button className="icon-button" aria-label="Notifications" onClick={() => setPage("notifications")}><Bell size={18}/></button><button className="top-auth-button" onClick={() => void signOut()}>Sign out</button></div></header>
       <div className="page-wrap">
-        {page === "overview" || page === "sales" || page === "cashflow" ? <>
-          <section className="greeting-row"><div><div className="eyebrow"><Sparkles size={13}/> MERCHANT GROWTH PARTNER</div><h1>{page === "overview" ? "Your business, understood." : page === "sales" ? "Sales insights" : "Cash flow"}</h1><p className="subheading">{page === "overview" ? "Your business information will appear here when your merchant account is connected." : "Insights use authorized account data and explain how each figure is calculated."}</p></div><div className="date-select" aria-label="Reporting period">◷ <span>{demoMode ? DEMO_RANGE : "Last 7 days"}</span><ChevronDown size={15}/></div></section>
+        {page === "overview" ? <>
+          <section className="greeting-row"><div><div className="eyebrow"><Sparkles size={13}/> MERCHANT GROWTH PARTNER</div><h1>Your business, understood.</h1><p className="subheading">Your business information will appear here when your merchant account is connected.</p></div><div className="date-select" aria-label="Reporting period">◷ <span>{demoMode ? DEMO_RANGE : "Last 7 days"}</span><ChevronDown size={15}/></div></section>
           <section className="hero-card"><div className="hero-content"><div className="hero-kicker"><Sparkles size={14}/> SAATHI AI · BUSINESS COPILOT</div><h2>{token ? `Welcome back, ${accountLabel}.` : "Your shop is busy. Your partner is ready."}</h2><p>A voice-first partner for sales, settlements, credit, customers, stock and tax. Ask general questions too; Saathi explains what it knows and where it needs connected data.</p><button className="hero-button" onClick={() => { setCommandNotice(""); setPage("assistant"); }}><Mic size={15}/> Talk to Saathi <ArrowRight size={16}/></button></div><div className="hero-art soundbox-scene" aria-hidden="true"><div className="art-ring ring-a"/><div className="art-ring ring-b"/><div className="sound-wave wave-one"/><div className="sound-wave wave-two"/><div className="sound-wave wave-three"/><div className="soundbox-device"><span className="soundbox-display">PAYTM</span><span className="soundbox-speaker"><i/><i/><i/><i/><i/></span><span className="soundbox-light"/></div><span className="art-dot"/></div><div className="hero-footer"><span><ShieldCheck size={14}/> Private to your merchant account · actions require your say</span><span className="preview-note">Works by voice or text</span></div></section>
           <div id="api-connection" className={`status-banner ${demoMode ? "status-demo" : apiError ? "status-error" : ""}`}><div className="status-icon">{demoMode ? <Sparkles size={17}/> : isLoading ? <Activity size={17} className="spin"/> : apiError ? <X size={17}/> : <ShieldCheck size={17}/>}</div><div><strong>{demoMode ? `DEMO DATA · sample week ${DEMO_RANGE}` : isLoading ? "Loading authorized merchant data" : apiError ? "Unable to load merchant data" : "Connected to shared merchant API"}</strong><p>{demoMode ? "Sample sales and payment activity for product preview only. These figures are not from your Paytm account." : apiError ? `API request did not complete: ${apiError.message}` : "This page uses verified records from your authorized merchant account."}</p></div><span className="status-env">{demoMode ? "SAMPLE ONLY" : process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000"}</span></div>
           <section className="metric-grid" aria-label={demoMode ? "Sample demo sales metrics" : "Authorized business metrics"}><MetricCard label="Gross collections" value={displayedGross} detail={demoMode ? "Successful sample payments · excludes failures" : salesQuery.data ? "Successful payments · excludes refunds and fees" : "Waiting for authorized data"} icon="₹" tone="teal"/><MetricCard label="Successful payments" value={displayedCount} detail={demoMode ? `Sample week · ${DEMO_RANGE}` : "In the selected period"} icon="✓" tone="violet"/><MetricCard label="Average payment" value={displayedAverage} detail="Gross collections ÷ successful payments" icon="⌁" tone="amber"/><MetricCard label="Pending settlement" value={demoMode ? money(DEMO_PENDING_SETTLEMENT.amountMinor) : "—"} detail={demoMode ? `${DEMO_PENDING_SETTLEMENT.payoutCount} sample payouts · expected ${DEMO_PENDING_SETTLEMENT.expected}` : "Settlement data is not available in API yet"} icon="↓" tone="pink"/></section>
           <section className="content-grid"><article className="panel sales-panel"><div className="panel-header"><div><h3>Collections summary</h3><p>{demoMode ? `Sample sales · ${DEMO_RANGE}` : "Authorized period total"}</p></div><span className="chart-period">{demoMode ? "DEMO" : "Last 7 days"}</span></div>{demoMode ? <DemoSalesChart/> : <EmptyChart message={salesQuery.data ? "The sales API currently returns a period total, not dated daily values." : "Daily totals will appear when the analytics API returns dated records."}/>}<div className="definition-note"><ShieldCheck size={15}/><span>{demoMode ? "Illustrative sample transactions; not a merchant statement." : salesQuery.data?.definition ?? "No totals are estimated or substituted while data is unavailable."}</span></div></article><article className="panel activity-panel"><div className="panel-header"><div><h3>Recent transactions</h3><p>{demoMode ? "Illustrative sample activity" : "Latest authorized payment activity"}</p></div><button className="text-action" onClick={() => setPage("sales")}>View sales <ArrowRight size={14}/></button></div><TransactionList data={demoMode ? DEMO_TRANSACTIONS.slice(0,8) : transactionsQuery.data ?? []} loading={!demoMode && transactionsQuery.isPending && !!token} error={demoMode ? null : transactionsQuery.error as Error | null} canQuery={demoMode || (!!token && !!selectedOrg)} locale={locale}/></article></section>
           <section className="bottom-grid"><AssistantCard orgId={selectedOrg} locale={locale} onLocaleDetected={setLocale} messages={visibleMessages} pending={askMutation.isPending || workspaceLoading} onAsk={askSaathi} onSpeak={speakReply} form={chatForm} submit={onAsk}/><article className="panel readiness-panel"><div className="panel-header"><div><h3>Business tools</h3><p>Availability from the shared API contract</p></div><BriefcaseBusiness size={18}/></div><FeatureAvailability items={[["Settlements & cash flow", false],["Inventory & purchase orders", false],["Customers & campaigns", false],["Tax & report exports", false],["Approvals & notifications", false]]}/></article></section>
-        </> : page === "assistant" ? <AssistantPage orgId={selectedOrg} locale={locale} onLocaleDetected={setLocale} messages={visibleMessages} pending={askMutation.isPending || workspaceLoading} onAsk={askSaathi} onSpeak={speakReply} form={chatForm} submit={onAsk}/> : <ModuleUnavailable page={page} onBack={() => setPage("overview")}/>}
+        </> : page === "sales" ? <SalesInsightsPage demo={demoMode} transactions={demoMode ? DEMO_TRANSACTIONS : transactionsQuery.data ?? []}/> : page === "cashflow" ? <CashflowPage demo={demoMode} transactions={demoMode ? DEMO_TRANSACTIONS : transactionsQuery.data ?? []}/> : page === "customers" ? <CustomersPage records={financeRecords} canSave={!!token && financeReadyToken === token} onAdd={addFinanceRecord}/> : page === "loans" ? <LoansPage records={financeRecords} canSave={!!token && financeReadyToken === token} onAdd={addFinanceRecord}/> : page === "assistant" ? <AssistantPage orgId={selectedOrg} locale={locale} onLocaleDetected={setLocale} messages={visibleMessages} pending={askMutation.isPending || workspaceLoading} onAsk={askSaathi} onSpeak={speakReply} form={chatForm} submit={onAsk}/> : <ModuleUnavailable page={page} onBack={() => setPage("overview")}/>}
         <footer className="page-footer"><span>Paytm Saathi · Connected data only · API availability varies by service.</span><span><button onClick={() => setPage("settings")}>Privacy &amp; data</button><i/><button onClick={() => setPage("support")}>Support</button></span></footer>
       </div>
       <nav className="mobile-bottom-nav" aria-label="Quick navigation">{nav.slice(0,5).map((item) => { const Icon=item.icon; return <button key={item.key} className={page===item.key?"active":""} onClick={()=>setPage(item.key)}><Icon size={18}/><span>{item.label}</span></button>; })}</nav>

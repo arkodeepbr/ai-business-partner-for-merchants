@@ -9,6 +9,8 @@ export type Transaction = components["schemas"]["Transaction"];
 export type AssistantResponse = components["schemas"]["AssistantResponse"];
 export type WorkspaceData = components["schemas"]["WorkspaceData"];
 export type WorkspaceDataUpdate = components["schemas"]["WorkspaceDataUpdate"];
+export type FinanceRecord = components["schemas"]["FinanceRecord"];
+export type FinanceRecordKind = FinanceRecord["kind"];
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
@@ -36,4 +38,6 @@ export const api = {
   chat: (messages: { role: "user" | "assistant"; content: string }[], locale: Locale) => apiFetch<AssistantResponse>("/api/v1/assistant/chat", { method: "POST", body: JSON.stringify({ messages, locale }) }),
   workspace: () => apiFetch<WorkspaceData>("/api/v1/me/workspace"),
   saveWorkspace: (data: WorkspaceDataUpdate) => apiFetch<WorkspaceData>("/api/v1/me/workspace", { method: "PATCH", body: JSON.stringify(data) }),
+  finance: () => apiFetch<components["schemas"]["FinanceRecords"]>("/api/v1/me/finance"),
+  saveFinance: (records: FinanceRecord[]) => apiFetch<components["schemas"]["FinanceRecords"]>("/api/v1/me/finance", { method: "PUT", body: JSON.stringify({ records }) }),
 };

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -58,6 +58,26 @@ class WorkspaceDataResponse(BaseModel):
 class WorkspaceDataUpdate(BaseModel):
     assistant_messages: list[WorkspaceMessage] | None = None
     preferred_locale: Literal["en", "hi", "kn"] | None = None
+
+
+class FinanceRecord(BaseModel):
+    id: str = Field(min_length=1, max_length=64)
+    kind: Literal["money_lent", "money_repaid", "loan_taken", "loan_payment", "transfer_recorded"]
+    name: str = Field(min_length=1, max_length=120)
+    phone: str | None = Field(default=None, max_length=30)
+    amount_minor: int = Field(gt=0, le=100_000_000_000)
+    occurred_at: datetime
+    due_date: date | None = None
+    related_record_id: str | None = Field(default=None, max_length=64)
+    note: str | None = Field(default=None, max_length=300)
+
+
+class FinanceRecordsResponse(BaseModel):
+    records: list[FinanceRecord]
+
+
+class FinanceRecordsUpdate(BaseModel):
+    records: list[FinanceRecord]
 
 
 class AuthSessionRequest(BaseModel):

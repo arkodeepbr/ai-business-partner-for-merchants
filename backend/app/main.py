@@ -14,7 +14,7 @@ from app.auth import current_user, require_membership, issue_access_token
 from app.core.config import get_settings
 from app.db import get_db, engine
 from app.models import Organization, PaymentTransaction, Settlement, User, UserWorkspaceData
-from app.schemas import AssistantChatRequest, AuthSessionRequest, AuthSessionResponse, ConversationRequest, ConversationResponse, SalesSummary, TransactionRead, WorkspaceDataResponse, WorkspaceDataUpdate
+from app.schemas import AssistantChatRequest, AuthSessionRequest, AuthSessionResponse, ConversationRequest, ConversationResponse, FinanceRecordsResponse, FinanceRecordsUpdate, SalesSummary, TransactionRead, WorkspaceDataResponse, WorkspaceDataUpdate
 from app.analytics import sales_summary
 
 settings = get_settings()
@@ -131,6 +131,24 @@ def update_workspace_data(body: WorkspaceDataUpdate, user: User = Depends(curren
     db.commit()
     db.refresh(workspace)
     return WorkspaceDataResponse(assistant_messages=workspace.assistant_messages, preferred_locale=workspace.preferred_locale)
+
+
+@app.get("/api/v1/me/finance", response_model=FinanceRecordsResponse)
+def get_finance_records(user: User = Depends(current_user), db: Session = Depends(get_db)):
+    workspace = db.get(UserWorkspaceData, user.id)
+    return FinanceRecordsResponse(records=workspace.finance_records if workspace else [])
+
+
+@app.put("/api/v1/me/finance", response_model=FinanceRecordsResponse)
+def save_finance_records(body: FinanceRecordsUpdate, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    workspace = db.get(UserWorkspaceData, user.id)
+    if not workspace:
+        workspace = UserWorkspaceData(user_id=user.id)
+        db.add(workspace)
+    workspace.finance_records = [record.model_dump(mode="json") for record in body.records]
+    db.commit()
+    db.refresh(workspace)
+    return FinanceRecordsResponse(records=workspace.finance_records)
 
 
 @app.post("/api/v1/assistant/chat", response_model=ConversationResponse)
