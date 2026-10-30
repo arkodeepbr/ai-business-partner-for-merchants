@@ -27,6 +27,11 @@ function currentWeek() {
   return { start: start.toISOString(), end: end.toISOString() };
 }
 const money = (minor: number, currency = "INR") => new Intl.NumberFormat("en-IN", { style: "currency", currency, maximumFractionDigits: 2 }).format(minor / 100);
+function shortSpokenReply(text: string) {
+  const firstSentences = text.trim().split(/(?<=[.!?।])\s+/u).slice(0, 2).join(" ");
+  const words = firstSentences.split(/\s+/u);
+  return words.length > 65 ? `${words.slice(0, 65).join(" ")}…` : firstSentences;
+}
 
 export function MerchantApp() {
   const router = useRouter();
@@ -56,7 +61,7 @@ export function MerchantApp() {
   const chatForm = useForm<ChatForm>({ resolver: zodResolver(chatSchema), defaultValues: { question: "" } });
   const askMutation = useMutation({
     mutationFn: (request: { question: string; history: { role: "user" | "assistant"; content: string }[]; organizationId: string; grounded: boolean }) => request.grounded ? api.ask(request.organizationId, request.question) : api.chat([...request.history, { role: "user", content: request.question }], locale),
-    onSuccess: (result: AssistantResponse) => { const provenance = result.grounded && Array.isArray(result.evidence.sources) ? `\n\nChecked against: ${(result.evidence.sources as string[]).join(", ")}.` : ""; const status = result.evidence.reason ? `\n\nStatus: ${String(result.evidence.reason).replaceAll("_", " ")}` : ""; setMessages((items) => [...items, { role: "assistant", text: `${result.answer}${provenance}${status}` }]); },
+    onSuccess: (result: AssistantResponse) => { const provenance = result.grounded && Array.isArray(result.evidence.sources) ? `\n\nChecked against: ${(result.evidence.sources as string[]).join(", ")}.` : ""; setMessages((items) => [...items, { role: "assistant", text: `${result.answer}${provenance}` }]); },
     onError: (error: Error) => setMessages((items) => [...items, { role: "assistant", text: `Saathi could not reach the shared API: ${error.message}. No business figures were generated.` }]),
   });
 
@@ -74,7 +79,7 @@ export function MerchantApp() {
     }
     if (latestAssistantIndex <= spokenAssistantIndexRef.current) return;
     spokenAssistantIndexRef.current = latestAssistantIndex;
-    void speakReply(latestAssistantAnswer);
+    void speakReply(shortSpokenReply(latestAssistantAnswer));
   }, [askMutation.isPending, latestAssistantAnswer, messages, speakReply]);
 
   useEffect(() => {
