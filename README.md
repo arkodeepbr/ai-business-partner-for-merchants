@@ -32,10 +32,14 @@ The image runs as a non-root user and includes a basic HTTP health check. Termin
 - Uses short lived bearer token state in memory and calls the shared `/me`, sales summary, transactions, and assistant endpoints.
 - Displays empty, loading, unavailable, and provider-not-configured states without substituting concept-preview figures.
 - An accessible English/Hindi language selector currently translates core navigation labels only.
-- Voice requests use the browser microphone permission and speech recognition; text commands remain available in every browser. Saathi automatically reads replies aloud using browser speech synthesis, with a manual “Read reply” control to replay them.
+- Voice requests use the browser microphone permission and speech recognition; text commands remain available in every browser. Saathi automatically speaks replies through a same-origin ElevenLabs proxy when configured, falls back to browser speech otherwise, and keeps a floating assistant with a “Hear reply” control on every page.
 - Other business areas clearly report that their shared API services are unavailable rather than presenting nonfunctional forms or fake offers.
 
-The backend does not yet expose login/OTP/session creation, so a merchant cannot sign in through the app yet. There is no browser token storage shortcut. Conversation history, streaming, approvals, inventory, customers, lending, tax, notification, and settings APIs are also not present in the current backend contract. Browser speech recognition and speech output do not need a Paytm API key, but they do depend on browser support and microphone permission.
+The backend does not yet expose login/OTP/session creation, so a merchant cannot sign in through the app yet. There is no browser token storage shortcut. Conversation history, streaming, approvals, inventory, customers, lending, tax, notification, and settings APIs are also not present in the current backend contract. Browser speech recognition and fallback speech do not need a Paytm API key, but they do depend on browser support and microphone permission.
+
+### ElevenLabs voice replies
+
+The web server proxies text-to-speech requests to ElevenLabs so the API key never enters the browser. Copy `.env.example` to `.env.local`, then set `ELEVENLABS_API_KEY` and a voice ID from your ElevenLabs account. The multilingual model setting is prefilled. When those values are absent or the provider is unavailable, Saathi falls back to browser speech. The floating assistant stays at the lower-right of the screen and offers **Hear reply** for browser autoplay restrictions. See the [ElevenLabs text-to-speech API](https://elevenlabs.io/docs/api-reference/text-to-speech/convert).
 
 ### AI and Paytm provider setup
 
