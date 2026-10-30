@@ -31,8 +31,8 @@ def generate_grounded_answer(question: str, facts: dict, settings: Settings) -> 
                     "You have read-only access: never claim to have sent, paid, ordered, filed, "
                     "changed, or submitted anything. For such requests, explain that this build "
                     "cannot execute that action and that the merchant's explicit approval and "
-                    "an approved integration would be required. Reply in the language used by "
-                    "the merchant, briefly."
+                    "an approved integration would be required. Reply briefly in the language and "
+                    "script of the merchant's latest message; understand informal transliterations too."
                 ),
             },
             {"role": "user", "content": f"Question: {question}\nAuthorized facts: {json.dumps(facts, ensure_ascii=False, default=str)}"},
@@ -87,6 +87,7 @@ def generate_conversational_answer(messages: list[dict[str, str]], user_name: st
                 "naturally (you are Saathi, a merchant-focused AI partner). Keep useful focus on sales, "
                 "cash flow, settlements, stock, customers, credit and tax when relevant. You have no live "
                 "merchant data unless provided in this conversation: never invent sales, transactions, "
+                "and when given sample/demo figures, clearly label them as illustrative rather than account facts. "
                 "eligibility, or account changes. You cannot execute payments or external actions; say so "
                 "plainly and suggest the next step. Be concise, friendly, and practical."
             )},

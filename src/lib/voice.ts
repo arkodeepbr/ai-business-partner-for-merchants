@@ -1,5 +1,4 @@
 export type VoiceLocale = "en" | "hi" | "kn";
-let activeAudio: HTMLAudioElement | null = null;
 let audioContext: AudioContext | null = null;
 let activeSource: AudioBufferSourceNode | null = null;
 let playbackRequest = 0;
@@ -19,8 +18,6 @@ export async function speakSaathi(text: string, locale: VoiceLocale): Promise<"e
   const requestId = ++playbackRequest;
   prepareVoicePlayback();
   window.speechSynthesis?.cancel();
-  activeAudio?.pause();
-  activeAudio = null;
   try { activeSource?.stop(); } catch { /* It may have already finished. */ }
   activeSource = null;
 
@@ -48,7 +45,6 @@ export async function speakSaathi(text: string, locale: VoiceLocale): Promise<"e
     if (requestId !== playbackRequest) {
       return "unavailable";
     }
-    activeAudio = null;
     if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === "undefined") return "unavailable";
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = locale === "hi" ? "hi-IN" : locale === "kn" ? "kn-IN" : "en-IN";

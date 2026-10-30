@@ -68,7 +68,7 @@ export function MerchantApp() {
   const transactionsQuery = useQuery({ queryKey: ["transactions", selectedOrg], queryFn: () => api.transactions(selectedOrg), enabled: !!token && !!selectedOrg });
   const chatForm = useForm<ChatForm>({ resolver: zodResolver(chatSchema), defaultValues: { question: "" } });
   const askMutation = useMutation({
-    mutationFn: (request: { question: string; history: { role: "user" | "assistant"; content: string }[]; organizationId: string; locale: Locale; grounded: boolean }) => request.grounded ? api.ask(request.organizationId, request.question) : api.chat([...request.history, { role: "user", content: request.question }], request.locale),
+    mutationFn: (request: { question: string; context?: string; history: { role: "user" | "assistant"; content: string }[]; organizationId: string; locale: Locale; grounded: boolean }) => request.grounded ? api.ask(request.organizationId, request.question) : api.chat([...request.history, { role: "user", content: request.context ? `Question: ${request.question.slice(0, 950)}\n\n${request.context.slice(0, 950)}` : request.question }], request.locale),
     onSuccess: (result: AssistantResponse) => { const provenance = result.grounded && Array.isArray(result.evidence.sources) ? `\n\nChecked against: ${(result.evidence.sources as string[]).join(", ")}.` : ""; setMessages((items) => [...items, { role: "assistant", text: `${result.answer}${provenance}` }]); },
     onError: (error: Error) => setMessages((items) => [...items, { role: "assistant", text: `Saathi could not reach the shared API: ${error.message}. No business figures were generated.` }]),
   });
@@ -130,7 +130,7 @@ export function MerchantApp() {
     prepareVoicePlayback();
     const responseLocale = detectLocale(question, locale);
     if (responseLocale !== locale) setLocale(responseLocale);
-    const command = interpretSaathiCommand(question, locale);
+    const command = interpretSaathiCommand(question, responseLocale);
     if (command.page !== "assistant") setPage(command.page);
     setMobileNavOpen(false);
     if (command.needsConnectedData) {
@@ -141,8 +141,15 @@ export function MerchantApp() {
         askMutation.mutate({ question, history, organizationId: selectedOrg, locale: responseLocale, grounded: true });
       } else {
         const localAnswer = answerDemoQuestion(question);
-        setCommandNotice(localAnswer);
-        setMessages((items) => [...items, { role: "user", text: question }, { role: "assistant", text: localAnswer }]);
+        setCommandNotice("");
+        if (token) {
+          const history = messages.slice(-10).map((item) => ({ role: item.role, content: item.text }));
+          setMessages((items) => [...items, { role: "user", text: question }]);
+          askMutation.mutate({ question, context: `The following are illustrative SAMPLE demo figures, not real merchant data. ${localAnswer} Answer the user's question using these sample figures if relevant, clearly call them sample/demo data, and never imply they came from the user's Paytm account.`, history, organizationId: selectedOrg, locale: responseLocale, grounded: false });
+        } else {
+          setCommandNotice(localAnswer);
+          setMessages((items) => [...items, { role: "user", text: question }, { role: "assistant", text: localAnswer }]);
+        }
       }
       return;
     }
