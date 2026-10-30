@@ -111,7 +111,7 @@ def me(user: User = Depends(current_user), db: Session = Depends(get_db)):
 @app.post("/api/v1/assistant/chat", response_model=ConversationResponse)
 async def assistant_chat(body: AssistantChatRequest, user: User = Depends(current_user)):
     if not settings.assistant_configured:
-        return ConversationResponse(answer="I’m Saathi, your AI business partner. I can chat in English, Hindi, or Kannada, but my AI service still needs its provider key configured before I can generate a fresh answer. Your account data stays private in the meantime.", evidence={"reason": "assistant_provider_not_configured"})
+        return ConversationResponse(answer="I’m Saathi, your business partner. I can reply in English, Hindi, or Kannada. My AI connection is not set up yet, so I can’t create a fresh chat answer. Add your Sarvam API key to the backend settings to enable conversation. Your merchant data remains private.", evidence={"reason": "assistant_provider_not_configured"})
     messages = [{"role": item.role, "content": item.content} for item in body.messages]
     try:
         answer = await run_in_threadpool(generate_conversational_answer, messages, user.full_name or "Merchant", body.locale, settings)
