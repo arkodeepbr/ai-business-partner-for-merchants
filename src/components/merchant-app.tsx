@@ -31,7 +31,7 @@ export function MerchantApp() {
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; text: string }[]>([]);
   const [commandNotice, setCommandNotice] = useState("");
   const cursorRef = useRef<HTMLSpanElement>(null);
-  const voiceRequestRef = useRef<string | null>(null);
+  const spokenAssistantIndexRef = useRef(-1);
   const token = useSession((state) => state.accessToken);
   const setToken = useSession((state) => state.setAccessToken);
   const locale = useLocalePreference((state) => state.locale);
@@ -46,19 +46,17 @@ export function MerchantApp() {
 
   const latestAssistantAnswer = [...messages].reverse().find((message) => message.role === "assistant")?.text ?? "";
   useEffect(() => {
-    const question = voiceRequestRef.current;
-    if (!question || askMutation.isPending) return;
-    let userIndex = -1;
+    if (askMutation.isPending || !latestAssistantAnswer || !window.speechSynthesis) return;
+    let latestAssistantIndex = -1;
     for (let index = messages.length - 1; index >= 0; index -= 1) {
-      if (messages[index].role === "user" && messages[index].text === question) { userIndex = index; break; }
+      if (messages[index].role === "assistant") { latestAssistantIndex = index; break; }
     }
-    const answer = userIndex >= 0 ? messages.slice(userIndex + 1).find((message) => message.role === "assistant")?.text : undefined;
-    if (!answer || !window.speechSynthesis) return;
+    if (latestAssistantIndex <= spokenAssistantIndexRef.current) return;
+    spokenAssistantIndexRef.current = latestAssistantIndex;
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(answer);
+    const utterance = new SpeechSynthesisUtterance(latestAssistantAnswer);
     utterance.lang = locale === "hi" ? "hi-IN" : "en-IN";
     window.speechSynthesis.speak(utterance);
-    voiceRequestRef.current = null;
   }, [askMutation.isPending, latestAssistantAnswer, locale, messages]);
 
   useEffect(() => {
@@ -94,9 +92,8 @@ export function MerchantApp() {
   const isLoading = token && (meQuery.isPending || (!!selectedOrg && salesQuery.isPending));
   const apiError = token ? (meQuery.error || salesQuery.error) as Error | null : null;
 
-  function askSaathi(question: string, fromVoice = false) {
+  function askSaathi(question: string) {
     const command = interpretSaathiCommand(question, locale);
-    if (fromVoice) voiceRequestRef.current = question;
     if (command.page !== "assistant") setPage(command.page);
     setCommandNotice(command.page !== "assistant" ? command.answer : "");
     setMobileNavOpen(false);
@@ -160,7 +157,7 @@ type SpeechRecognitionLike = {
 };
 type SpeechWindow = Window & { SpeechRecognition?: new () => SpeechRecognitionLike; webkitSpeechRecognition?: new () => SpeechRecognitionLike };
 
-function AssistantCard({orgId,locale,messages,pending,onAsk,form,submit}:{orgId:string;locale:"en"|"hi";messages:{role:"user"|"assistant";text:string}[];pending:boolean;onAsk:(q:string,fromVoice?:boolean)=>void;form:ReturnType<typeof useForm<ChatForm>>;submit:(v:ChatForm)=>void}) {
+function AssistantCard({orgId,locale,messages,pending,onAsk,form,submit}:{orgId:string;locale:"en"|"hi";messages:{role:"user"|"assistant";text:string}[];pending:boolean;onAsk:(q:string)=>void;form:ReturnType<typeof useForm<ChatForm>>;submit:(v:ChatForm)=>void}) {
   const [listening, setListening] = useState(false);
   const [voiceNotice, setVoiceNotice] = useState("");
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
@@ -191,7 +188,7 @@ function AssistantCard({orgId,locale,messages,pending,onAsk,form,submit}:{orgId:
       const transcript = event.results[0]?.[0]?.transcript?.trim();
       if (transcript) {
         setVoiceNotice(`Heard: “${transcript}”`);
-        onAsk(transcript, true);
+        onAsk(transcript);
       }
     };
     recognition.onerror = (event) => {
@@ -213,7 +210,7 @@ function AssistantCard({orgId,locale,messages,pending,onAsk,form,submit}:{orgId:
     window.speechSynthesis.speak(utterance);
   }
 
-  return <article className="panel assistant-panel"><div className="assistant-top"><div className="assistant-avatar"><Sparkles size={18}/></div><div><h3>Saathi AI business partner</h3><p>{orgId?"Connected to the shared API":"Voice and typed navigation ready · merchant data not connected"}</p></div><span className="online-pill">{orgId?"API":"VOICE READY"}</span></div><div className="assistant-messages" aria-live="polite">{messages.length===0?<div className="bot-message"><span className="message-spark"><Sparkles size={14}/></span><div><strong>Ask Saathi to help run your shop.</strong><br/>Try “show today’s sales”, “open stock”, or “what can you do?”</div></div>:messages.slice(-4).map((m,i)=><div key={i} className={m.role==="user"?"user-message":"bot-message"}>{m.role==="assistant"&&<span className="message-spark"><Sparkles size={14}/></span>}<div>{m.text}</div></div>)}{pending&&<div className="bot-message"><span className="message-spark"><Sparkles size={14}/></span><div className="typing-dots"><i/><i/><i/></div></div>}</div><div className="assistant-suggestions"><button type="button" disabled={pending} onClick={()=>onAsk("Show sales insights")}>Show sales <ArrowRight size={13}/></button><button type="button" disabled={pending} onClick={()=>onAsk("What settlements are pending?")}>Settlements <ArrowRight size={13}/></button><button type="button" disabled={pending} onClick={()=>onAsk("Open stock and staff")}>Stock &amp; staff <ArrowRight size={13}/></button></div><form className="assistant-input" onSubmit={form.handleSubmit(submit)}><input {...form.register("question")} placeholder="Ask or tell Saathi what to do…" aria-label="Ask Saathi" disabled={pending}/><button className="voice-button" type="button" aria-label={listening?"Stop voice input":"Start voice input"} aria-pressed={listening} onClick={toggleVoiceInput}><Mic size={16}/></button><button aria-label="Send message" disabled={pending}><Send size={16}/></button></form>{voiceNotice&&<small className="voice-notice" aria-live="polite">{voiceNotice}</small>}{form.formState.errors.question&&<small className="field-error">{form.formState.errors.question.message}</small>}<div className="assistant-foot"><div className="privacy-note"><ShieldCheck size={13}/> Merchant data stays private. External actions require your approval.</div><button type="button" className="read-aloud" aria-label="Read latest answer aloud" disabled={!latestAnswer} onClick={readLatestAnswer}><Volume2 size={15}/> Read reply</button></div></article>;
+  return <article className="panel assistant-panel"><div className="assistant-top"><div className="assistant-avatar"><Sparkles size={18}/></div><div><h3>Saathi AI business partner</h3><p>{orgId?"Connected to the shared API":"Voice and typed navigation ready · merchant data not connected"}</p></div><span className="online-pill">{orgId?"API":"VOICE READY"}</span></div><div className="assistant-messages" aria-live="polite">{messages.length===0?<div className="bot-message"><span className="message-spark"><Sparkles size={14}/></span><div><strong>Ask Saathi to help run your shop.</strong><br/>Try “show today’s sales”, “open stock”, or “what can you do?”</div></div>:messages.slice(-4).map((m,i)=><div key={i} className={m.role==="user"?"user-message":"bot-message"}>{m.role==="assistant"&&<span className="message-spark"><Sparkles size={14}/></span>}<div>{m.text}</div></div>)}{pending&&<div className="bot-message"><span className="message-spark"><Sparkles size={14}/></span><div className="typing-dots"><i/><i/><i/></div></div>}</div><div className="assistant-suggestions"><button type="button" disabled={pending} onClick={()=>onAsk("Show sales insights")}>Show sales <ArrowRight size={13}/></button><button type="button" disabled={pending} onClick={()=>onAsk("What settlements are pending?")}>Settlements <ArrowRight size={13}/></button><button type="button" disabled={pending} onClick={()=>onAsk("Open stock and staff")}>Stock &amp; staff <ArrowRight size={13}/></button></div><form className="assistant-input" onSubmit={form.handleSubmit(submit)}><input {...form.register("question")} placeholder="Ask or tell Saathi what to do…" aria-label="Ask Saathi" disabled={pending}/><button className="voice-button" type="button" aria-label={listening?"Stop voice input":"Start voice input"} aria-pressed={listening} onClick={toggleVoiceInput}><Mic size={16}/></button><button aria-label="Send message" disabled={pending}><Send size={16}/></button></form>{voiceNotice&&<small className="voice-notice" aria-live="polite">{voiceNotice}</small>}{form.formState.errors.question&&<small className="field-error">{form.formState.errors.question.message}</small>}<div className="assistant-foot"><div className="privacy-note"><ShieldCheck size={13}/> Replies speak automatically. External actions require your approval.</div><button type="button" className="read-aloud" aria-label="Read latest answer aloud" disabled={!latestAnswer} onClick={readLatestAnswer}><Volume2 size={15}/> Read reply</button></div></article>;
 }
 function AssistantPage(props:Parameters<typeof AssistantCard>[0]) { return <section className="assistant-page"><div className="assistant-page-heading"><div className="eyebrow"><Sparkles size={13}/> YOUR BUSINESS COPILOT</div><h1>Saathi AI</h1><p>Speak or type. Saathi opens the right tool, explains what it can do, and tells you when connected merchant data is needed.</p></div><AssistantCard {...props}/></section>; }
 function ModuleUnavailable({page,onBack}:{page:string;onBack:()=>void}) { const title=page.charAt(0).toUpperCase()+page.slice(1); return <section className="unavailable-page"><div className="eyebrow"><BriefcaseBusiness size={13}/> PAYTM SAATHI</div><div className="unavailable-card"><div className="unavailable-icon"><ReceiptText size={22}/></div><h1>{title}</h1><p>This business area is part of the product plan, but the shared backend contract does not yet expose this service. No sample records or unsupported actions are shown.</p><button className="hero-button" onClick={onBack}>Return to overview <ArrowRight size={15}/></button></div></section>; }
