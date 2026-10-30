@@ -56,7 +56,7 @@ class WorkspaceDataResponse(BaseModel):
 
 
 class WorkspaceDataUpdate(BaseModel):
-    assistant_messages: list[WorkspaceMessage] | None = Field(default=None, max_length=200)
+    assistant_messages: list[WorkspaceMessage] | None = None
     preferred_locale: Literal["en", "hi", "kn"] | None = None
 
 

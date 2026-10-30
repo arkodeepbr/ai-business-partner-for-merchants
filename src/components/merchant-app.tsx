@@ -90,7 +90,7 @@ export function MerchantApp() {
     const ownerToken = token;
     const sequence = ++workspaceSaveSequence.current;
     const workspaceUpdate = {
-      assistant_messages: messages.slice(-200).map((message) => ({ role: message.role, content: message.text })),
+      assistant_messages: messages.map((message) => ({ role: message.role, content: message.text })),
       preferred_locale: locale,
     };
     const timer = window.setTimeout(() => {

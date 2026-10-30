@@ -125,7 +125,7 @@ def update_workspace_data(body: WorkspaceDataUpdate, user: User = Depends(curren
         workspace = UserWorkspaceData(user_id=user.id)
         db.add(workspace)
     if "assistant_messages" in body.model_fields_set and body.assistant_messages is not None:
-        workspace.assistant_messages = [message.model_dump() for message in body.assistant_messages[-200:]]
+        workspace.assistant_messages = [message.model_dump() for message in body.assistant_messages]
     if body.preferred_locale is not None:
         workspace.preferred_locale = body.preferred_locale
     db.commit()

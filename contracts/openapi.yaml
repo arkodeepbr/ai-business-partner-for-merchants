@@ -205,7 +205,6 @@ components:
       properties:
         assistant_messages:
           type: array
-          maxItems: 200
           items: { $ref: '#/components/schemas/WorkspaceMessage' }
         preferred_locale: { type: string, enum: [en, hi, kn] }
     WorkspaceDataUpdate:
@@ -213,7 +212,6 @@ components:
       properties:
         assistant_messages:
           type: array
-          maxItems: 200
           items: { $ref: '#/components/schemas/WorkspaceMessage' }
         preferred_locale: { type: string, enum: [en, hi, kn] }
     AssistantRequest:

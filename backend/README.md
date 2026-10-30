@@ -31,7 +31,7 @@ All amounts are integer minor units (INR paise). The sales metric is gross succe
 
 The auth foundation verifies short lived signed bearer tokens and active users. The session endpoint exchanges verified Supabase access tokens; Supabase handles email/password sign-in, Google OAuth, signup verification, and password reset. Configure Supabase redirect URLs, email delivery, and OAuth provider credentials for each deployment. There is no public endpoint that issues a session without verifying the Supabase token.
 
-The signed-in workspace stores up to 200 recent Saathi chat messages and the user's preferred language in `user_workspace_data`, keyed to the authenticated user. The API derives the owner from the verified bearer token; clients cannot choose another user's ID. Apply `alembic upgrade head` to create the table. Merchant transactions and settlements remain organization-scoped in their existing tables and are visible only to members of that organization.
+The signed-in workspace stores the user's complete Saathi chat history and preferred language in `user_workspace_data`, keyed to the authenticated user. The API derives the owner from the verified bearer token; clients cannot choose another user's ID. Apply `alembic upgrade head` to create the table. Merchant transactions and settlements remain organization-scoped in their existing tables and are visible only to members of that organization.
 
 The provider adapter is sandbox-only and returns no records. No public Paytm or Soundbox API is assumed. `PROVIDER_MODE=production` does not create a production connector; live mode remains unavailable until an approved provider adapter and credentials are supplied.
 
