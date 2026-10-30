@@ -33,7 +33,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
 export const api = {
   me: () => apiFetch<MeResponse>("/api/v1/me"),
   sales: (org: string, from: string, to: string) => apiFetch<SalesSummary>(`/api/v1/organizations/${org}/analytics/sales?from_at=${encodeURIComponent(from)}&to_at=${encodeURIComponent(to)}`),
-  transactions: (org: string) => apiFetch<Transaction[]>(`/api/v1/organizations/${org}/transactions?limit=8`),
+  transactions: (org: string) => apiFetch<Transaction[]>(`/api/v1/organizations/${org}/transactions?limit=100`),
   ask: (org: string, question: string) => apiFetch<AssistantResponse>(`/api/v1/organizations/${org}/assistant`, { method: "POST", body: JSON.stringify({ question }) }),
   chat: (messages: { role: "user" | "assistant"; content: string }[], locale: Locale) => apiFetch<AssistantResponse>("/api/v1/assistant/chat", { method: "POST", body: JSON.stringify({ messages, locale }) }),
   workspace: () => apiFetch<WorkspaceData>("/api/v1/me/workspace"),
