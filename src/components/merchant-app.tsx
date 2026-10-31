@@ -67,6 +67,7 @@ export function MerchantApp() {
   const setLocale = useLocalePreference((state) => state.setLocale);
   const workspaceSaveSequence = useRef(0);
   const financeSaveSequence = useRef(0);
+  const financeDirtyRef = useRef(false);
   const period = useMemo(() => currentWeek(), []);
   const meQuery = useQuery({ queryKey: ["me", token], queryFn: api.me, enabled: !!token });
   const selectedOrg = orgId || meQuery.data?.organizations[0]?.id || "";
@@ -76,19 +77,21 @@ export function MerchantApp() {
   const visibleMessages = token && workspaceReadyToken !== token ? [] : messages;
 
   useEffect(() => {
-    if (!token) { queueMicrotask(() => { setFinanceRecords([]); setFinanceReadyToken(null); }); return; }
+    if (!token) { financeDirtyRef.current = false; queueMicrotask(() => { setFinanceRecords([]); setFinanceReadyToken(null); }); return; }
     let active = true;
-    void api.finance().then((result) => { if (active) { setFinanceRecords(result.records); setFinanceReadyToken(token); } }).catch((error: unknown) => { console.error("Could not load account finance records", error); });
+    void api.finance().then((result) => { if (active) { financeDirtyRef.current = false; setFinanceRecords(result.records); setFinanceReadyToken(token); } }).catch((error: unknown) => { console.error("Could not load account finance records", error); });
     return () => { active = false; };
   }, [token]);
 
   useEffect(() => {
-    if (!token || financeReadyToken !== token) return;
+    if (!token || financeReadyToken !== token || !financeDirtyRef.current) return;
     const ownerToken = token;
     const sequence = ++financeSaveSequence.current;
     const timer = window.setTimeout(() => {
       if (financeSaveSequence.current !== sequence || useSession.getState().accessToken !== ownerToken) return;
-      void api.saveFinance(financeRecords).catch((error: unknown) => console.error("Could not save account finance records", error));
+      void api.saveFinance(financeRecords).then(() => {
+        if (financeSaveSequence.current === sequence && useSession.getState().accessToken === ownerToken) financeDirtyRef.current = false;
+      }).catch((error: unknown) => console.error("Could not save account finance records", error));
     }, 450);
     return () => window.clearTimeout(timer);
   }, [financeRecords, token, financeReadyToken]);
@@ -257,7 +260,17 @@ export function MerchantApp() {
   }
 
   function addFinanceRecord(record: Omit<FinanceRecord, "id" | "occurred_at">) {
+    financeDirtyRef.current = true;
     setFinanceRecords((items) => [...items, { ...record, id: crypto.randomUUID(), occurred_at: new Date().toISOString() }]);
+  }
+
+  async function saveLedgerRecord(record: Omit<FinanceRecord, "id" | "occurred_at">) {
+    if (!token || financeReadyToken !== token) throw new Error("Account ledger is still loading");
+    financeDirtyRef.current = false;
+    financeSaveSequence.current += 1;
+    const updated = [...financeRecords, { ...record, id: crypto.randomUUID(), occurred_at: new Date().toISOString() }];
+    const saved = await api.saveFinance(updated);
+    setFinanceRecords(saved.records);
   }
 
   async function signOut() {
@@ -290,7 +303,7 @@ export function MerchantApp() {
           <section className="metric-grid" aria-label={demoMode ? "Sample demo sales metrics" : "Authorized business metrics"}><MetricCard label="Gross collections" value={displayedGross} detail={demoMode ? "Successful sample payments · excludes failures" : salesQuery.data ? "Successful payments · excludes refunds and fees" : "Waiting for authorized data"} icon="₹" tone="teal"/><MetricCard label="Successful payments" value={displayedCount} detail={demoMode ? `Sample week · ${DEMO_RANGE}` : "In the selected period"} icon="✓" tone="violet"/><MetricCard label="Average payment" value={displayedAverage} detail="Gross collections ÷ successful payments" icon="⌁" tone="amber"/><MetricCard label="Pending settlement" value={demoMode ? money(DEMO_PENDING_SETTLEMENT.amountMinor) : "—"} detail={demoMode ? `${DEMO_PENDING_SETTLEMENT.payoutCount} sample payouts · expected ${DEMO_PENDING_SETTLEMENT.expected}` : "Settlement data is not available in API yet"} icon="↓" tone="pink"/></section>
           <section className="content-grid"><article className="panel sales-panel"><div className="panel-header"><div><h3>Collections summary</h3><p>{demoMode ? `Sample sales · ${DEMO_RANGE}` : "Authorized period total"}</p></div><span className="chart-period">{demoMode ? "DEMO" : "Last 7 days"}</span></div>{demoMode ? <DemoSalesChart/> : <EmptyChart message={salesQuery.data ? "The sales API currently returns a period total, not dated daily values." : "Daily totals will appear when the analytics API returns dated records."}/>}<div className="definition-note"><ShieldCheck size={15}/><span>{demoMode ? "Illustrative sample transactions; not a merchant statement." : salesQuery.data?.definition ?? "No totals are estimated or substituted while data is unavailable."}</span></div></article><article className="panel activity-panel"><div className="panel-header"><div><h3>Recent transactions</h3><p>{demoMode ? "Illustrative sample activity" : "Latest authorized payment activity"}</p></div><button className="text-action" onClick={() => setPage("sales")}>View sales <ArrowRight size={14}/></button></div><TransactionList data={demoMode ? DEMO_TRANSACTIONS.slice(0,8) : transactionsQuery.data ?? []} loading={!demoMode && transactionsQuery.isPending && !!token} error={demoMode ? null : transactionsQuery.error as Error | null} canQuery={demoMode || (!!token && !!selectedOrg)} locale={locale}/></article></section>
           <section className="bottom-grid"><AssistantCard orgId={selectedOrg} locale={locale} onLocaleDetected={setLocale} messages={visibleMessages} pending={askMutation.isPending || workspaceLoading} onAsk={askSaathi} onSpeak={speakReply} form={chatForm} submit={onAsk}/><article className="panel readiness-panel"><div className="panel-header"><div><h3>Business tools</h3><p>Availability from the shared API contract</p></div><BriefcaseBusiness size={18}/></div><FeatureAvailability items={[["Settlements & cash flow", false],["Inventory & purchase orders", false],["Customers & campaigns", false],["Tax & report exports", false],["Approvals & notifications", false]]}/></article></section>
-        </> : page === "sales" ? <SalesInsightsPage demo={demoMode} transactions={demoMode ? DEMO_TRANSACTIONS : transactionsQuery.data ?? []}/> : page === "cashflow" ? <CashflowPage demo={demoMode} transactions={demoMode ? DEMO_TRANSACTIONS : transactionsQuery.data ?? []}/> : page === "customers" ? <LedgerPage records={financeRecords} canSave={!!token && financeReadyToken === token} onAdd={addFinanceRecord}/> : page === "loans" ? <LoansPage records={financeRecords} canSave={!!token && financeReadyToken === token} onAdd={addFinanceRecord}/> : page === "assistant" ? <AssistantPage orgId={selectedOrg} locale={locale} onLocaleDetected={setLocale} messages={visibleMessages} pending={askMutation.isPending || workspaceLoading} onAsk={askSaathi} onSpeak={speakReply} form={chatForm} submit={onAsk}/> : <ModuleUnavailable page={page} onBack={() => setPage("overview")}/>}
+        </> : page === "sales" ? <SalesInsightsPage demo={demoMode} transactions={demoMode ? DEMO_TRANSACTIONS : transactionsQuery.data ?? []}/> : page === "cashflow" ? <CashflowPage demo={demoMode} transactions={demoMode ? DEMO_TRANSACTIONS : transactionsQuery.data ?? []}/> : page === "customers" ? <LedgerPage records={financeRecords} canSave={!!token && financeReadyToken === token} onAdd={saveLedgerRecord}/> : page === "loans" ? <LoansPage records={financeRecords} canSave={!!token && financeReadyToken === token} onAdd={addFinanceRecord}/> : page === "assistant" ? <AssistantPage orgId={selectedOrg} locale={locale} onLocaleDetected={setLocale} messages={visibleMessages} pending={askMutation.isPending || workspaceLoading} onAsk={askSaathi} onSpeak={speakReply} form={chatForm} submit={onAsk}/> : <ModuleUnavailable page={page} onBack={() => setPage("overview")}/>}
         <footer className="page-footer"><span>Paytm Saathi · Connected data only · API availability varies by service.</span><span><button onClick={() => setPage("settings")}>Privacy &amp; data</button><i/><button onClick={() => setPage("support")}>Support</button></span></footer>
       </div>
       <nav className="mobile-bottom-nav" aria-label="Quick navigation">{nav.slice(0,5).map((item) => { const Icon=item.icon; return <button key={item.key} className={page===item.key?"active":""} onClick={()=>setPage(item.key)}><Icon size={18}/><span>{item.label}</span></button>; })}</nav>

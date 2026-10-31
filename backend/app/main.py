@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Paytm Saathi API", version="1.0.0", openapi_url="/api/v1/openapi.json",
               docs_url="/api/v1/docs", redoc_url=None, lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_credentials=True,
-                   allow_methods=["GET", "POST", "PATCH", "DELETE"], allow_headers=["Authorization", "Content-Type", "Idempotency-Key"])
+                   allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE"], allow_headers=["Authorization", "Content-Type", "Idempotency-Key"])
 
 
 @app.post("/api/v1/auth/session", response_model=AuthSessionResponse, tags=["authentication"])
