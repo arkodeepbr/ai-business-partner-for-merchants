@@ -6,6 +6,7 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack && node scripts/prepare-standalone.mjs",
     "start": "next start",
+    "start:standalone": "node scripts/start-standalone.mjs",
     "lint": "eslint .",
     "test": "vitest run",
     "test:e2e": "playwright test",

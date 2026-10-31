@@ -516,7 +516,18 @@ function AssistantCard({orgId,locale,onLocaleDetected,messages,pending,onAsk,onS
           const detected: Locale | null = ["hi","hin"].includes(result.languageCode ?? "") ? "hi" : ["kn","kan"].includes(result.languageCode ?? "") ? "kn" : ["en","eng"].includes(result.languageCode ?? "") ? "en" : null;
           if (detected) onLocaleDetected(detected);
           setVoiceNotice(`Heard: “${result.text.trim()}”`); onAsk(result.text.trim());
-        } catch { setVoiceNotice("Speech transcription failed. Check your connection, or type the request instead."); }
+        } catch (error) {
+          const code = error instanceof Error ? error.message : "";
+          const messages: Record<string, string> = {
+            speech_service_not_configured: "Voice input is not configured on the Saathi server yet. You can still type your request.",
+            speech_service_auth_failed: "Saathi’s speech service rejected its API key. The server configuration needs attention.",
+            speech_service_quota_exhausted: "Saathi’s speech service has reached its usage limit. Please type your request for now.",
+            same_origin_required: "Voice request was blocked because the website address changed. Refresh Saathi and try again.",
+            audio_must_be_between_100_bytes_and_8_mb: "That recording was too short or too long. Record a short request and try again.",
+            transcription_failed: "Saathi could not transcribe that recording. Try again in a quieter place or type your request.",
+          };
+          setVoiceNotice(messages[code] ?? "Could not reach Saathi’s speech service. Check your connection and try again, or type your request.");
+        }
       };
       recorder.start(); setListening(true); setVoiceNotice(`Recording in ${languageName[locale]} — tap the mic again when you’re done.`);
     } catch (error) {

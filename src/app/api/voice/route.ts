@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
+import { isSameOriginRequest } from "@/lib/same-origin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
-  const origin = request.headers.get("origin");
-  if (!origin || origin !== new URL(request.url).origin) {
+  if (!isSameOriginRequest(request)) {
     return NextResponse.json({ error: "same_origin_required" }, { status: 403 });
   }
 

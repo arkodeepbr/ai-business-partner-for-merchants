@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
+import { isSameOriginRequest } from "@/lib/same-origin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
-  const origin = request.headers.get("origin");
-  if (!origin || origin !== new URL(request.url).origin) {
+  if (!isSameOriginRequest(request)) {
     return NextResponse.json({ error: "same_origin_required" }, { status: 403 });
   }
   if (!process.env.ELEVENLABS_API_KEY) {
@@ -23,7 +23,9 @@ export async function POST(request: Request) {
     const client = new ElevenLabsClient();
     const result = await client.speechToText.convert({ file, modelId: "scribe_v2", ...(languageCode ? { languageCode } : {}) });
     return NextResponse.json({ text: result.text, languageCode: result.languageCode ?? languageCode ?? null });
-  } catch {
-    return NextResponse.json({ error: "transcription_failed" }, { status: 502 });
+  } catch (error) {
+    const status = typeof error === "object" && error !== null && "statusCode" in error ? Number(error.statusCode) : 0;
+    const reason = status === 401 || status === 403 ? "speech_service_auth_failed" : status === 429 || status === 402 ? "speech_service_quota_exhausted" : "transcription_failed";
+    return NextResponse.json({ error: reason }, { status: 502 });
   }
 }
