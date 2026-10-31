@@ -323,3 +323,18 @@ h1,h2,h3,p { margin-top: 0; }
 .auth-message { padding:11px 12px; border-radius:9px; font-size:12px; line-height:1.5; }.auth-error { background:#fff0ee; color:#a9443a; }.auth-success { background:#eaf8f2; color:#187d62; }
 .auth-links { display:grid; gap:11px; margin-top:17px; text-align:center; }.auth-links p { margin:5px 0 0; color:#778a83; font-size:12px; }.auth-links button,.resend-code { display:inline-flex; justify-content:center; align-items:center; gap:5px; padding:0; border:0; background:none; color:#088f7c; font:inherit; font-size:12px; font-weight:700; cursor:pointer; }.auth-links p button { margin-left:3px; }.resend-code { display:flex; margin:13px auto 0; color:#647b72; font-weight:600; }.auth-trust { display:flex; align-items:center; justify-content:center; gap:7px; margin-top:24px; padding-top:18px; border-top:1px solid #edf1ed; color:#83938d; font-size:10px; }.auth-trust svg { color:#0cab8e; }.auth-footnote { position:relative; z-index:1; margin:18px 0 0; color:#879791; text-align:center; font-size:10px; }.top-auth-button { padding:8px 12px; border:1px solid #dfe8e2; border-radius:9px; background:white; color:#087f6c; text-decoration:none; font-size:11px; font-weight:700; cursor:pointer; }.profile-login-link { flex:0 0 auto; color:#078e78; font-size:11px; font-weight:700; text-decoration:none; }
 @media(max-width:520px) { .auth-page { padding:64px 14px 28px; }.auth-card { padding:29px 23px 23px; border-radius:17px; }.auth-card h1 { font-size:25px; }.auth-back { top:22px; left:18px; } }
+.profit-bars i.loss { background:linear-gradient(180deg,#f1a1a4,#dc6672); }
+.target-value { margin:12px 0 8px; color:#102f29; font-size:27px; font-weight:750; letter-spacing:-.04em; }
+.target-lift { display:flex; align-items:center; gap:7px; color:#74827b; font-size:9px; }
+.target-lift input { width:58px; height:28px; padding:0 7px; border:1px solid #e4ebe6; border-radius:7px; font:inherit; }
+.loan-planner { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:11px; margin:14px 0; }
+.loan-planner label { display:flex; flex-direction:column; gap:5px; color:#57665e; font-size:9px; font-weight:600; }
+.loan-planner input { width:100%; height:36px; padding:0 10px; border:1px solid #e4ebe6; border-radius:8px; color:#263b33; font:inherit; font-size:10px; }
+.loan-planner>div { display:flex; flex-direction:column; justify-content:center; gap:6px; padding:9px 11px; border:1px solid #e8efea; border-radius:8px; background:#f8fbf9; }
+.loan-planner small { color:#839089; font-size:8px; }
+.loan-planner strong { color:#123b32; font-size:14px; }
+.advice-button { margin:10px 0; }
+.business-ai-advice { margin-top:12px; padding:13px 14px; border:1px solid #dcebe5; border-radius:10px; background:linear-gradient(145deg,#f5fbf8,#fff); }
+.business-ai-advice strong { color:#0d806e; font-size:10px; }
+.business-ai-advice p { margin:7px 0 0; color:#58675f; font-size:10px; line-height:1.7; white-space:pre-wrap; }
+@media(max-width:700px){.loan-planner{grid-template-columns:1fr 1fr}}
