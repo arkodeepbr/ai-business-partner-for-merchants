@@ -64,21 +64,28 @@ export const DEMO_PROFIT_SUMMARY = DEMO_PROFIT_DAILY.reduce((totals, day) => ({
 
 // Anonymous customer purchase events illustrate retention analytics; never treated as real or saved.
 export const DEMO_CUSTOMER_PURCHASES: FinanceRecord[] = [
-  { id: "demo-c104-1", kind: "customer_purchase", name: "Customer C-104", phone: null, amount_minor: 18500, occurred_at: "2026-10-03T10:00:00+05:30", category: "Snacks", quantity: 1 },
-  { id: "demo-c104-2", kind: "customer_purchase", name: "Customer C-104", phone: null, amount_minor: 21000, occurred_at: "2026-10-10T10:00:00+05:30", category: "Snacks", quantity: 1 },
-  { id: "demo-c104-3", kind: "customer_purchase", name: "Customer C-104", phone: null, amount_minor: 19500, occurred_at: "2026-10-17T10:00:00+05:30", category: "Snacks", quantity: 1 },
-  { id: "demo-c211-1", kind: "customer_purchase", name: "Customer C-211", phone: null, amount_minor: 42000, occurred_at: "2026-10-10T12:00:00+05:30", category: "Tea & coffee", quantity: 2 },
-  { id: "demo-c211-2", kind: "customer_purchase", name: "Customer C-211", phone: null, amount_minor: 39000, occurred_at: "2026-10-17T12:00:00+05:30", category: "Tea & coffee", quantity: 2 },
-  { id: "demo-c211-3", kind: "customer_purchase", name: "Customer C-211", phone: null, amount_minor: 45000, occurred_at: "2026-10-24T12:00:00+05:30", category: "Tea & coffee", quantity: 2 },
-  { id: "demo-c312-1", kind: "customer_purchase", name: "Customer C-312", phone: null, amount_minor: 125000, occurred_at: "2026-10-01T15:00:00+05:30", category: "Household staples", quantity: 5 },
-  { id: "demo-c408-1", kind: "customer_purchase", name: "Customer C-408", phone: null, amount_minor: 26000, occurred_at: "2026-10-02T16:00:00+05:30", category: "Snacks", quantity: 2 },
-  { id: "demo-c408-2", kind: "customer_purchase", name: "Customer C-408", phone: null, amount_minor: 24000, occurred_at: "2026-10-09T16:00:00+05:30", category: "Snacks", quantity: 2 },
-  { id: "demo-c408-3", kind: "customer_purchase", name: "Customer C-408", phone: null, amount_minor: 28000, occurred_at: "2026-10-16T16:00:00+05:30", category: "Snacks", quantity: 2 },
-  { id: "demo-c408-4", kind: "customer_purchase", name: "Customer C-408", phone: null, amount_minor: 25000, occurred_at: "2026-10-23T16:00:00+05:30", category: "Snacks", quantity: 2 },
-  { id: "demo-c509-1", kind: "customer_purchase", name: "Customer C-509", phone: null, amount_minor: 68000, occurred_at: "2026-10-05T11:00:00+05:30", category: "Beverages", quantity: 3 },
-  { id: "demo-c509-2", kind: "customer_purchase", name: "Customer C-509", phone: null, amount_minor: 72000, occurred_at: "2026-10-20T11:00:00+05:30", category: "Beverages", quantity: 3 },
-  { id: "demo-c620-1", kind: "customer_purchase", name: "Customer C-620", phone: null, amount_minor: 15000, occurred_at: "2026-10-01T09:00:00+05:30", category: "Snacks", quantity: 1 },
-  { id: "demo-c620-2", kind: "customer_purchase", name: "Customer C-620", phone: null, amount_minor: 16000, occurred_at: "2026-10-05T09:00:00+05:30", category: "Snacks", quantity: 1 },
+  { id: "demo-c104-1", kind: "customer_purchase", name: "Snack boxes", customer_name: "Asha Rao", phone: null, amount_minor: 18500, discount_minor: 1500, occurred_at: "2026-10-03T10:00:00+05:30", category: "Snacks", quantity: 1, related_record_id: "demo-snacks" },
+  { id: "demo-c104-2", kind: "customer_purchase", name: "Snack boxes", customer_name: "Asha Rao", phone: null, amount_minor: 21000, discount_minor: 0, occurred_at: "2026-10-10T10:00:00+05:30", category: "Snacks", quantity: 1, related_record_id: "demo-snacks" },
+  { id: "demo-c104-3", kind: "customer_purchase", name: "Snack boxes", customer_name: "Asha Rao", phone: null, amount_minor: 19500, discount_minor: 2000, occurred_at: "2026-10-17T10:00:00+05:30", category: "Snacks", quantity: 1, related_record_id: "demo-snacks" },
+  { id: "demo-c104-4", kind: "customer_purchase", name: "Snack boxes", customer_name: "Asha Rao", phone: null, amount_minor: 14000, discount_minor: 0, occurred_at: "2026-10-24T10:00:00+05:30", category: "Snacks", quantity: 1, related_record_id: "demo-snacks" },
+  { id: "demo-c211-1", kind: "customer_purchase", name: "Tea packs", customer_name: "Ravi Kumar", phone: null, amount_minor: 42000, discount_minor: 0, occurred_at: "2026-10-10T12:00:00+05:30", category: "Tea & coffee", quantity: 2, related_record_id: "demo-tea" },
+  { id: "demo-c211-2", kind: "customer_purchase", name: "Tea packs", customer_name: "Ravi Kumar", phone: null, amount_minor: 39000, discount_minor: 1000, occurred_at: "2026-10-17T12:00:00+05:30", category: "Tea & coffee", quantity: 2, related_record_id: "demo-tea" },
+  { id: "demo-c211-3", kind: "customer_purchase", name: "Tea packs", customer_name: "Ravi Kumar", phone: null, amount_minor: 45000, discount_minor: 0, occurred_at: "2026-10-24T12:00:00+05:30", category: "Tea & coffee", quantity: 2, related_record_id: "demo-tea" },
+  { id: "demo-c312-1", kind: "customer_purchase", name: "Household staples", customer_name: "Meera Shah", phone: null, amount_minor: 125000, discount_minor: 0, occurred_at: "2026-10-01T15:00:00+05:30", category: "Household staples", quantity: 5 },
+  { id: "demo-c408-1", kind: "customer_purchase", name: "Snack boxes", customer_name: "Arjun Nair", phone: null, amount_minor: 26000, discount_minor: 0, occurred_at: "2026-10-02T16:00:00+05:30", category: "Snacks", quantity: 2, related_record_id: "demo-snacks" },
+  { id: "demo-c408-2", kind: "customer_purchase", name: "Snack boxes", customer_name: "Arjun Nair", phone: null, amount_minor: 24000, discount_minor: 0, occurred_at: "2026-10-09T16:00:00+05:30", category: "Snacks", quantity: 2, related_record_id: "demo-snacks" },
+  { id: "demo-c408-3", kind: "customer_purchase", name: "Snack boxes", customer_name: "Arjun Nair", phone: null, amount_minor: 28000, discount_minor: 2000, occurred_at: "2026-10-16T16:00:00+05:30", category: "Snacks", quantity: 2, related_record_id: "demo-snacks" },
+  { id: "demo-c408-4", kind: "customer_purchase", name: "Snack boxes", customer_name: "Arjun Nair", phone: null, amount_minor: 25000, discount_minor: 0, occurred_at: "2026-10-23T16:00:00+05:30", category: "Snacks", quantity: 2, related_record_id: "demo-snacks" },
+  { id: "demo-c509-1", kind: "customer_purchase", name: "Tea packs", customer_name: "Priya Iyer", phone: null, amount_minor: 68000, discount_minor: 0, occurred_at: "2026-10-05T11:00:00+05:30", category: "Beverages", quantity: 3, related_record_id: "demo-tea" },
+  { id: "demo-c509-2", kind: "customer_purchase", name: "Tea packs", customer_name: "Priya Iyer", phone: null, amount_minor: 72000, discount_minor: 5000, occurred_at: "2026-10-20T11:00:00+05:30", category: "Beverages", quantity: 3, related_record_id: "demo-tea" },
+  { id: "demo-c620-1", kind: "customer_purchase", name: "Snack boxes", customer_name: "Kavya Menon", phone: null, amount_minor: 15000, discount_minor: 0, occurred_at: "2026-10-01T09:00:00+05:30", category: "Snacks", quantity: 1, related_record_id: "demo-snacks" },
+  { id: "demo-c620-2", kind: "customer_purchase", name: "Snack boxes", customer_name: "Kavya Menon", phone: null, amount_minor: 16000, discount_minor: 500, occurred_at: "2026-10-05T09:00:00+05:30", category: "Snacks", quantity: 1, related_record_id: "demo-snacks" },
+];
+
+export const DEMO_INVENTORY_PRODUCTS = [
+  { id: "demo-tea", name: "Tea packs", quantity: 32, unit_cost_minor: 1200, unit_price_minor: 2000 },
+  { id: "demo-notebooks", name: "Notebooks", quantity: 24, unit_cost_minor: 2800, unit_price_minor: 4500 },
+  { id: "demo-snacks", name: "Snack boxes", quantity: 15, unit_cost_minor: 3500, unit_price_minor: 5200 },
 ];
 
 export const DEMO_PENDING_SETTLEMENT = { amountMinor: 864000, payoutCount: 2, expected: "31 Oct" };

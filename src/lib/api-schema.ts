@@ -541,6 +541,7 @@ export interface components {
             discount_minor?: number | null;
             fees_minor?: number | null;
             category?: string | null;
+            customer_name?: string | null;
         };
         FinanceRecords: {
             records: components["schemas"]["FinanceRecord"][];

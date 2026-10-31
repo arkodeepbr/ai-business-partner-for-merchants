@@ -263,6 +263,7 @@ components:
         discount_minor: { type: [integer, 'null'], minimum: 0, maximum: 100000000000 }
         fees_minor: { type: [integer, 'null'], minimum: 0, maximum: 100000000000 }
         category: { type: [string, 'null'], maxLength: 80 }
+        customer_name: { type: [string, 'null'], maxLength: 120 }
     FinanceRecords:
       type: object
       required: [records]

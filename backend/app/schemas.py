@@ -79,6 +79,7 @@ class FinanceRecord(BaseModel):
     discount_minor: int | None = Field(default=None, ge=0, le=100_000_000_000)
     fees_minor: int | None = Field(default=None, ge=0, le=100_000_000_000)
     category: str | None = Field(default=None, max_length=80)
+    customer_name: str | None = Field(default=None, max_length=120)
 
 
 class FinanceRecordsResponse(BaseModel):

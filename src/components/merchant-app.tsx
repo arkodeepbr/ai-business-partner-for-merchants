@@ -17,7 +17,8 @@ import { analyzeCustomerPurchases } from "@/components/customer-retention";
 import { useSession } from "@/lib/auth";
 import { useLocalePreference, type Locale } from "@/lib/locale";
 import { interpretSaathiCommand } from "@/lib/saathi-commands";
-import { answerDemoQuestion, DEMO_CUSTOMER_PURCHASES, DEMO_DAILY_SALES, DEMO_PENDING_SETTLEMENT, DEMO_PROFIT_SUMMARY, DEMO_RANGE, DEMO_SALES_SUMMARY, DEMO_TRANSACTIONS } from "@/lib/demo-data";
+import { answerDemoQuestion, DEMO_CUSTOMER_PURCHASES, DEMO_DAILY_SALES, DEMO_INVENTORY_PRODUCTS, DEMO_PENDING_SETTLEMENT, DEMO_PROFIT_SUMMARY, DEMO_RANGE, DEMO_SALES_SUMMARY, DEMO_TRANSACTIONS } from "@/lib/demo-data";
+import { getInventoryProducts } from "@/lib/inventory";
 import { prepareVoicePlayback, speakSaathi, type VoiceLocale } from "@/lib/voice";
 import { useTranslations } from "next-intl";
 import { createClient as createSupabaseClient } from "@/lib/supabase/client";
@@ -198,12 +199,22 @@ export function MerchantApp() {
     const responseLocale = detectLocale(question, locale);
     if (responseLocale !== locale) setLocale(responseLocale);
     const lowerQuestion = question.toLocaleLowerCase();
+    const topBuyerQuestion = /\b(top|best|highest|most loyal).*(customers?|buyers?)\b|\b(customers?|buyers?).*(spend|purchase|purchased|buy|loyal|best|most)\b|who.*(?:buys|spends).*(?:most|more)|सबसे.*ग्राहक|अधिक.*खरीद|ಅತ್ಯುತ್ತಮ.*ಗ್ರಾಹಕ|ಹೆಚ್ಚು.*ಖರೀದಿ/iu.test(question);
+    if (topBuyerQuestion) {
+      if (token && financeReadyToken !== token) { setCommandNotice("Your saved customer purchase history is still loading. Please try again in a moment."); return; }
+      const savedPurchases = financeRecords.filter((item) => item.kind === "customer_purchase");
+      const sample = savedPurchases.length === 0;
+      const customers = analyzeCustomerPurchases(sample ? DEMO_CUSTOMER_PURCHASES : savedPurchases, currentTimestamp(), sample ? DEMO_INVENTORY_PRODUCTS : getInventoryProducts(financeRecords));
+      const top = customers.slice().sort((a, b) => b.total - a.total).slice(0, 3);
+      const answer = top.length ? (sample ? "Fictional demo customers — " : "From your saved customer purchase records — ") + "top buyers by recorded net spend: " + top.map((customer, index) => (index + 1) + ", " + customer.id + ", " + money(customer.total) + " across " + customer.orders.length + " visits, most often " + customer.favoriteCategory + (customer.discountedOrders ? ", discounts on " + customer.discountedOrders + " visits" : "")).join("; ") + ". " + (sample ? "These names and sales are mock data. " : "Purchases are account-saved. ") + "Discounts can be compared with purchase history but do not prove why a customer returned." : (sample ? "The demo contains no customer purchases." : "No customer purchases have been recorded yet. Add them on the Customers page.");
+      setPage("customers"); setMessages((items) => [...items, { role: "user", text: question }, { role: "assistant", text: answer }]); return;
+    }
     const churnQuestion = /churn|stop(?:ped)? (?:visiting|coming|returning)|who.*not.*return|not come back|inactive customers?|retain(?:ing)? customers?|re.engag|customer.*(?:at risk|return)|repeat customers?|कौन.*ग्राहक.*वापस|ग्राहक.*नहीं.*आ|ಗ್ರಾಹಕರು.*ಮರಳಿ|ಗ್ರಾಹಕ.*ಬರದೆ/iu.test(question);
     if (churnQuestion) {
       if (token && financeReadyToken !== token) { setCommandNotice("Your saved customer purchase history is still loading. Please try again in a moment."); return; }
       const savedPurchases = financeRecords.filter((item) => item.kind === "customer_purchase");
       const sample = savedPurchases.length === 0;
-      const customers = analyzeCustomerPurchases(sample ? DEMO_CUSTOMER_PURCHASES : savedPurchases, currentTimestamp());
+      const customers = analyzeCustomerPurchases(sample ? DEMO_CUSTOMER_PURCHASES : savedPurchases, currentTimestamp(), sample ? DEMO_INVENTORY_PRODUCTS : getInventoryProducts(financeRecords));
       const likelyLapsed = customers.filter((customer) => customer.stopped).slice(0, 3);
       const answer = likelyLapsed.length ? `${sample ? "Illustrative sample only — " : "From your saved purchase history — "}these customers may have stopped visiting: ${likelyLapsed.map((customer) => `${customer.id}, last visit ${customer.daysSince} days ago, estimated risk ${customer.risk}%. Suggested follow-up: ${customer.offer}`).join("; ")}. These are estimates, not certain predictions. Review margin before any discount; no message is sent.` : `${sample ? "Illustrative sample only — " : "From your saved purchase history — "}no customer currently crosses the lapsed-visit threshold. Keep monitoring repeat intervals and use the Customers page to review suggested follow-ups. No message is sent.`;
       setPage("customers"); setMessages((items) => [...items, { role: "user", text: question }, { role: "assistant", text: answer }]); return;
@@ -229,10 +240,10 @@ export function MerchantApp() {
       if (token && financeReadyToken !== token) { setCommandNotice("Your saved sales and cost records are still loading. Please try again in a moment."); return; }
       const cutoff = currentTimestamp() - 7 * 24 * 60 * 60 * 1000;
       const recorded = financeRecords.filter((item) => item.occurred_at && new Date(item.occurred_at).getTime() >= cutoff);
-      const sales = recorded.filter((item) => item.kind === "inventory_sale");
+      const sales = recorded.filter((item) => item.kind === "inventory_sale" || (item.kind === "customer_purchase" && !!item.related_record_id));
       const returns = recorded.filter((item) => item.kind === "inventory_return");
       const expenses = recorded.filter((item) => item.kind === "expense_recorded");
-      const useSample = !financeRecords.some((item) => ["inventory_item", "inventory_sale", "inventory_return", "expense_recorded"].includes(item.kind));
+      const useSample = !financeRecords.some((item) => ["inventory_item", "inventory_sale", "inventory_return", "expense_recorded"].includes(item.kind) || (item.kind === "customer_purchase" && !!item.related_record_id));
       const facts = useSample ? DEMO_PROFIT_SUMMARY : {
         grossSalesMinor: sales.reduce((sum, item) => sum + item.amount_minor + (item.discount_minor ?? 0), 0),
         discountsMinor: sales.reduce((sum, item) => sum + (item.discount_minor ?? 0), 0),

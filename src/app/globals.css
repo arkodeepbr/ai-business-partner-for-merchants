@@ -365,7 +365,20 @@ h1,h2,h3,p { margin-top: 0; }
 .retention-form { grid-template-columns:1fr; }
 .retention-form label:first-child,.retention-form .business-primary,.retention-form .business-form-notice { grid-column:1; }
 .retention-form .business-primary { width:100%; }
+.top-customers-panel { margin-top:0; }
+.top-customer-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.top-customer-card { min-width:0; padding:12px; border:1px solid #e8efeb; border-radius:10px; background:#fcfefd; }
+.top-customer-card .retention-head { margin-bottom:8px; }
+.top-customer-card .retention-head>div { gap:7px; }
+.top-customer-card .retention-head strong { font-size:10px; }
+.top-customer-card .retention-head>b { color:#173d33; font-size:11px; }
+.top-customer-card small,.retention-discount-history { display:block; margin-top:8px; color:#7a8982; font-size:8px; line-height:1.45; }
+.top-rank { display:grid; width:20px; height:20px; place-items:center; border-radius:50%; background:#e9f7f2; color:#078a77; font-size:9px; font-weight:700; }
+.retention-price-preview { grid-column:1/-1; margin:0; color:#537166; font-size:9px; line-height:1.5; }
+.retention-form { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.retention-form label:first-child,.retention-form label:nth-child(2),.retention-form .business-primary,.retention-form .business-form-notice { grid-column:1/-1; }
 @media(max-width:760px){.retention-section{padding:12px}.retention-section .business-heading h2{font-size:21px}}
+@media(max-width:760px){.top-customer-grid{grid-template-columns:1fr}.retention-form{grid-template-columns:1fr}.retention-form label,.retention-form label:first-child,.retention-form label:nth-child(2),.retention-form .business-primary,.retention-form .business-form-notice,.retention-price-preview{grid-column:1}}
 .report-toolbar { display:flex; flex-wrap:wrap; align-items:end; gap:9px; padding:14px; border:1px solid var(--line); border-radius:12px; background:#fff; }
 .report-toolbar label { display:flex; flex:1 1 155px; flex-direction:column; gap:5px; color:#718078; font-size:9px; }
 .report-toolbar select { height:36px; padding:0 10px; border:1px solid var(--line); border-radius:8px; background:#fff; color:#263b33; font:inherit; font-size:10px; }
