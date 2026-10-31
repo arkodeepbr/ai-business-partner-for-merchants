@@ -9,7 +9,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Activity, ArrowRight, Bell, Bot, BriefcaseBusiness, ChartNoAxesCombined, ChevronDown, CircleHelp, CreditCard, FileChartColumn, Menu, Mic, Package, ReceiptText, Send, Settings2, ShieldCheck, Sparkles, Users, Volume2, WalletCards, X } from "lucide-react";
 import { api, type AssistantResponse, type FinanceRecord, type Transaction } from "@/lib/api";
-import { CashflowPage, SalesInsightsPage } from "@/components/business-pages";
+import { CashflowPage, HistoricalSalesChart, SalesInsightsPage } from "@/components/business-pages";
 import { LedgerPage } from "@/components/ledger-page";
 import { OperationsPage } from "@/components/operations-page";
 import { ReportsPage } from "@/components/reports-page";
@@ -17,11 +17,12 @@ import { analyzeCustomerPurchases } from "@/components/customer-retention";
 import { useSession } from "@/lib/auth";
 import { useLocalePreference, type Locale } from "@/lib/locale";
 import { interpretSaathiCommand } from "@/lib/saathi-commands";
-import { answerDemoQuestion, DEMO_CUSTOMER_PURCHASES, DEMO_DAILY_SALES, DEMO_INVENTORY_PRODUCTS, DEMO_PENDING_SETTLEMENT, DEMO_PROFIT_SUMMARY, DEMO_RANGE, DEMO_SALES_SUMMARY, DEMO_TRANSACTIONS } from "@/lib/demo-data";
+import { answerDemoQuestion, DEMO_CUSTOMER_PURCHASES, DEMO_INVENTORY_PRODUCTS, DEMO_PENDING_SETTLEMENT, DEMO_PROFIT_SUMMARY, DEMO_RANGE, DEMO_SALES_SUMMARY, DEMO_TRANSACTIONS } from "@/lib/demo-data";
 import { getInventoryProducts } from "@/lib/inventory";
 import { prepareVoicePlayback, speakSaathi, type VoiceLocale } from "@/lib/voice";
 import { useTranslations } from "next-intl";
 import { createClient as createSupabaseClient } from "@/lib/supabase/client";
+import { SettingsPage, type Appearance } from "@/components/settings-page";
 
 const chatSchema = z.object({ question: z.string().trim().min(1, "Write a question first").max(2000) });
 type ChatForm = z.infer<typeof chatSchema>;
@@ -61,6 +62,7 @@ export function MerchantApp() {
   const [commandNotice, setCommandNotice] = useState("");
   const [floatingAssistantOpen, setFloatingAssistantOpen] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState("Browser voice ready");
+  const [theme, setTheme] = useState<Appearance>("light");
   const cursorRef = useRef<HTMLSpanElement>(null);
   const spokenAssistantIndexRef = useRef(-1);
   const token = useSession((state) => state.accessToken);
@@ -108,6 +110,7 @@ export function MerchantApp() {
       if (!active) return;
       setMessages(workspace.assistant_messages.map((message) => ({ role: message.role, text: message.content })));
       setLocale(workspace.preferred_locale);
+      setTheme(workspace.preferred_theme);
       setWorkspaceReadyToken(token);
     }).catch((error: unknown) => {
       console.error("Could not load this account's saved workspace", error);
@@ -117,19 +120,30 @@ export function MerchantApp() {
   }, [token, setLocale]);
 
   useEffect(() => {
+    const localTheme = window.localStorage.getItem("saathi-theme");
+    if (localTheme === "light" || localTheme === "dark") queueMicrotask(() => setTheme(localTheme));
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    window.localStorage.setItem("saathi-theme", theme);
+  }, [theme]);
+
+  useEffect(() => {
     if (!token || workspaceReadyToken !== token) return;
     const ownerToken = token;
     const sequence = ++workspaceSaveSequence.current;
     const workspaceUpdate = {
       assistant_messages: messages.map((message) => ({ role: message.role, content: message.text })),
       preferred_locale: locale,
+      preferred_theme: theme,
     };
     const timer = window.setTimeout(() => {
       if (workspaceSaveSequence.current !== sequence || useSession.getState().accessToken !== ownerToken) return;
       void api.saveWorkspace(workspaceUpdate).catch((error: unknown) => console.error("Could not save this account's workspace", error));
     }, 600);
     return () => window.clearTimeout(timer);
-  }, [messages, locale, token, workspaceReadyToken]);
+  }, [messages, locale, theme, token, workspaceReadyToken]);
   const chatForm = useForm<ChatForm>({ resolver: zodResolver(chatSchema), defaultValues: { question: "" } });
   const askMutation = useMutation({
     mutationFn: (request: { question: string; context?: string; history: { role: "user" | "assistant"; content: string }[]; organizationId: string; locale: Locale; grounded: boolean }) => request.grounded ? api.ask(request.organizationId, request.question) : api.chat([...request.history, { role: "user", content: request.context ? `Question: ${request.question.slice(0, 950)}\n\n${request.context.slice(0, 950)}` : request.question }], request.locale),
@@ -173,7 +187,7 @@ export function MerchantApp() {
 
   const labels = {
     overview: t("overview"), sales: t("sales"), cashflow: t("cashflow"), customers: t("customers"),
-    inventory: t("inventory"), reports: t("reports"),
+    inventory: "Profit planner", reports: t("reports"),
   };
   const displayedGross = demoMode ? money(DEMO_SALES_SUMMARY.grossCollectionsMinor) : salesQuery.data ? money(salesQuery.data.gross_collections_minor, salesQuery.data.currency) : "—";
   const displayedCount = demoMode ? String(DEMO_SALES_SUMMARY.transactionCount) : salesQuery.data ? String(salesQuery.data.transaction_count) : "—";
@@ -254,13 +268,13 @@ export function MerchantApp() {
         expensesMinor: expenses.reduce((sum, item) => sum + item.amount_minor, 0),
       };
       const netProfitMinor = facts.netSalesMinor - facts.netCogsMinor - facts.feesMinor - facts.expensesMinor;
-      const context = `${useSample ? "Use only ILLUSTRATIVE SAMPLE data, never describe it as the merchant's real Paytm results." : "Use the signed-in user's saved manual ledger records, not live Paytm data."} Seven-day profit facts (INR paise): ${JSON.stringify({ ...facts, netProfitMinor, grossMarginPercent: facts.netSalesMinor ? Number(((facts.netSalesMinor - facts.netCogsMinor) / facts.netSalesMinor * 100).toFixed(1)) : 0, netMarginPercent: facts.netSalesMinor ? Number((netProfitMinor / facts.netSalesMinor * 100).toFixed(1)) : 0 })}. Explain gross sales, discounts, refunds, net sales, COGS, fees, operating expenses and net profit. Clearly label sample figures. Tell the user they can add/edit product costs, record sales, discounts, fees, returns and expenses on Stock & staff.`;
+      const context = `${useSample ? "Use only ILLUSTRATIVE SAMPLE data, never describe it as the merchant's real Paytm results." : "Use the signed-in user's saved manual ledger records, not live Paytm data."} Seven-day profit facts (INR paise): ${JSON.stringify({ ...facts, netProfitMinor, grossMarginPercent: facts.netSalesMinor ? Number(((facts.netSalesMinor - facts.netCogsMinor) / facts.netSalesMinor * 100).toFixed(1)) : 0, netMarginPercent: facts.netSalesMinor ? Number((netProfitMinor / facts.netSalesMinor * 100).toFixed(1)) : 0 })}. Explain gross sales, discounts, refunds, net sales, COGS, fees, operating expenses and net profit. Clearly label sample figures. Tell the user they can add/edit product costs, record sales, discounts, fees, returns and expenses in Profit planner.`;
       const history = messages.slice(-10).map((item) => ({ role: item.role, content: item.text }));
       if (token) {
         setCommandNotice(""); setMessages((items) => [...items, { role: "user", text: question }]);
         askMutation.mutate({ question, context, history, organizationId: selectedOrg, locale: responseLocale, grounded: false });
       } else {
-        const response = `Sample profit for ${DEMO_RANGE}: gross sales ₹45,050 less discounts ₹850 and refunds ₹360 gives net sales ₹43,840. After net cost of goods ₹24,700, payment fees ₹658 and operating expenses ₹6,200, estimated net profit is ₹12,282 (28.0% net margin). These figures are illustrative only. On Stock & staff you can record products, sale quantities, cost of goods, discounts, fees, returns and expenses.`;
+        const response = `Sample profit for ${DEMO_RANGE}: gross sales ₹45,050 less discounts ₹850 and refunds ₹360 gives net sales ₹43,840. After net cost of goods ₹24,700, payment fees ₹658 and operating expenses ₹6,200, estimated net profit is ₹12,282 (28.0% net margin). These figures are illustrative only. In Profit planner you can record products, sale quantities, cost of goods, discounts, fees, returns and expenses.`;
         setPage("inventory"); setMessages((items) => [...items, { role: "user", text: question }, { role: "assistant", text: response }]);
       }
       return;
@@ -333,7 +347,17 @@ export function MerchantApp() {
     setMessages([]); setWorkspaceReadyToken(null); setToken(null); setOrgId(""); router.replace("/login"); router.refresh();
   }
 
-  return <div className="app-shell">
+  function exportSavedRecords() {
+    const contents = JSON.stringify({ account: { name: accountLabel, email }, exportedAt: new Date().toISOString(), financeRecords }, null, 2);
+    const url = URL.createObjectURL(new Blob([contents], { type: "application/json" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "saathi-account-records.json";
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return <div className="app-shell" data-theme={theme}>
     <span ref={cursorRef} className="cinematic-cursor" aria-hidden="true" />
     {commandNotice && <div className="command-toast" role="status"><Sparkles size={16}/><span>{commandNotice}</span><button type="button" className="toast-speak" aria-label="Speak Saathi message" title="Speak this message" onClick={() => void speakReply(commandNotice)}><Volume2 size={15}/></button><button type="button" aria-label="Dismiss Saathi message" onClick={() => setCommandNotice("")}><X size={15}/></button></div>}
     <FloatingSaathi open={floatingAssistantOpen} onToggle={() => setFloatingAssistantOpen((open) => !open)} onClose={() => setFloatingAssistantOpen(false)} onAsk={askSaathi} onSpeak={(text) => void speakReply(text)} messages={visibleMessages} latestAnswer={latestAssistantAnswer} pending={askMutation.isPending || workspaceLoading} voiceStatus={voiceStatus} onOpenVoice={() => { setPage("assistant"); setFloatingAssistantOpen(false); }}/>
@@ -355,9 +379,9 @@ export function MerchantApp() {
           <section className="hero-card"><div className="hero-content"><div className="hero-kicker"><Sparkles size={14}/> SAATHI AI · BUSINESS COPILOT</div><h2>{token ? `Welcome back, ${accountLabel}.` : "Your shop is busy. Your partner is ready."}</h2><p>A voice-first partner for sales, settlements, credit, customers, stock and tax. Ask general questions too; Saathi explains what it knows and where it needs connected data.</p><button className="hero-button" onClick={() => { setCommandNotice(""); setPage("assistant"); }}><Mic size={15}/> Talk to Saathi <ArrowRight size={16}/></button></div><div className="hero-art soundbox-scene" aria-hidden="true"><div className="art-ring ring-a"/><div className="art-ring ring-b"/><div className="sound-wave wave-one"/><div className="sound-wave wave-two"/><div className="sound-wave wave-three"/><div className="soundbox-device"><span className="soundbox-display">PAYTM</span><span className="soundbox-speaker"><i/><i/><i/><i/><i/></span><span className="soundbox-light"/></div><span className="art-dot"/></div><div className="hero-footer"><span><ShieldCheck size={14}/> Private to your merchant account · actions require your say</span><span className="preview-note">Works by voice or text</span></div></section>
           <div id="api-connection" className={`status-banner ${demoMode ? "status-demo" : apiError ? "status-error" : ""}`}><div className="status-icon">{demoMode ? <Sparkles size={17}/> : isLoading ? <Activity size={17} className="spin"/> : apiError ? <X size={17}/> : <ShieldCheck size={17}/>}</div><div><strong>{demoMode ? `DEMO DATA · sample week ${DEMO_RANGE}` : isLoading ? "Loading authorized merchant data" : apiError ? "Unable to load merchant data" : "Connected to shared merchant API"}</strong><p>{demoMode ? "Sample sales and payment activity for product preview only. These figures are not from your Paytm account." : apiError ? `API request did not complete: ${apiError.message}` : "This page uses verified records from your authorized merchant account."}</p></div><span className="status-env">{demoMode ? "SAMPLE ONLY" : process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000"}</span></div>
           <section className="metric-grid" aria-label={demoMode ? "Sample demo sales metrics" : "Authorized business metrics"}><MetricCard label="Gross collections" value={displayedGross} detail={demoMode ? "Successful sample payments · excludes failures" : salesQuery.data ? "Successful payments · excludes refunds and fees" : "Waiting for authorized data"} icon="₹" tone="teal"/><MetricCard label="Successful payments" value={displayedCount} detail={demoMode ? `Sample week · ${DEMO_RANGE}` : "In the selected period"} icon="✓" tone="violet"/><MetricCard label="Average payment" value={displayedAverage} detail="Gross collections ÷ successful payments" icon="⌁" tone="amber"/><MetricCard label="Pending settlement" value={demoMode ? money(DEMO_PENDING_SETTLEMENT.amountMinor) : "—"} detail={demoMode ? `${DEMO_PENDING_SETTLEMENT.payoutCount} sample payouts · expected ${DEMO_PENDING_SETTLEMENT.expected}` : "Settlement data is not available in API yet"} icon="↓" tone="pink"/></section>
-          <section className="content-grid"><article className="panel sales-panel"><div className="panel-header"><div><h3>Collections summary</h3><p>{demoMode ? `Sample sales · ${DEMO_RANGE}` : "Authorized period total"}</p></div><span className="chart-period">{demoMode ? "DEMO" : "Last 7 days"}</span></div>{demoMode ? <DemoSalesChart/> : <EmptyChart message={salesQuery.data ? "The sales API currently returns a period total, not dated daily values." : "Daily totals will appear when the analytics API returns dated records."}/>}<div className="definition-note"><ShieldCheck size={15}/><span>{demoMode ? "Illustrative sample transactions; not a merchant statement." : salesQuery.data?.definition ?? "No totals are estimated or substituted while data is unavailable."}</span></div></article><article className="panel activity-panel"><div className="panel-header"><div><h3>Recent transactions</h3><p>{demoMode ? "Illustrative sample activity" : "Latest authorized payment activity"}</p></div><button className="text-action" onClick={() => setPage("sales")}>View sales <ArrowRight size={14}/></button></div><TransactionList data={demoMode ? DEMO_TRANSACTIONS.slice(0,8) : transactionsQuery.data ?? []} loading={!demoMode && transactionsQuery.isPending && !!token} error={demoMode ? null : transactionsQuery.error as Error | null} canQuery={demoMode || (!!token && !!selectedOrg)} locale={locale}/></article></section>
+          <section className="content-grid"><article className="panel sales-panel"><div className="panel-header"><div><h3>Collections history</h3><p>{demoMode ? `Sample sales · ${DEMO_RANGE}` : "Historical successful payments"}</p></div><span className="chart-period">{demoMode ? "DEMO HISTORY" : "HISTORY"}</span></div>{(demoMode ? DEMO_TRANSACTIONS : transactionsQuery.data ?? []).length ? <HistoricalSalesChart transactions={demoMode ? DEMO_TRANSACTIONS : transactionsQuery.data ?? []}/> : <EmptyChart message="The historical graph will appear when the payment API returns dated transactions."/>}<div className="definition-note"><ShieldCheck size={15}/><span>{demoMode ? "Illustrative sample transactions; not a merchant statement." : salesQuery.data?.definition ?? "Historical points use dated authorized transaction records."}</span></div></article><article className="panel activity-panel"><div className="panel-header"><div><h3>Recent transactions</h3><p>{demoMode ? "Illustrative sample activity" : "Latest authorized payment activity"}</p></div><button className="text-action" onClick={() => setPage("sales")}>View sales <ArrowRight size={14}/></button></div><TransactionList data={demoMode ? DEMO_TRANSACTIONS.slice(0,8) : transactionsQuery.data ?? []} loading={!demoMode && transactionsQuery.isPending && !!token} error={demoMode ? null : transactionsQuery.error as Error | null} canQuery={demoMode || (!!token && !!selectedOrg)} locale={locale}/></article></section>
           <section className="bottom-grid"><AssistantCard orgId={selectedOrg} locale={locale} onLocaleDetected={setLocale} messages={visibleMessages} pending={askMutation.isPending || workspaceLoading} onAsk={askSaathi} onSpeak={speakReply} form={chatForm} submit={onAsk}/><article className="panel readiness-panel"><div className="panel-header"><div><h3>Business tools</h3><p>Availability from the shared API contract</p></div><BriefcaseBusiness size={18}/></div><FeatureAvailability items={[["Settlements & cash flow", false],["Inventory & purchase orders", false],["Customers & campaigns", false],["Tax & report exports", false],["Approvals & notifications", false]]}/></article></section>
-        </> : page === "sales" ? <SalesInsightsPage demo={demoMode} transactions={demoMode ? DEMO_TRANSACTIONS : transactionsQuery.data ?? []} onViewProfit={() => setPage("inventory")}/> : page === "cashflow" ? <CashflowPage demo={demoMode} transactions={demoMode ? DEMO_TRANSACTIONS : transactionsQuery.data ?? []}/> : page === "customers" ? <LedgerPage records={financeRecords} canSave={!!token && financeReadyToken === token} onAdd={saveLedgerRecord} locale={locale}/> : page === "inventory" ? <OperationsPage records={financeRecords} canSave={!!token && financeReadyToken === token} onAdd={saveLedgerRecord} onSpeak={speakReply} locale={locale}/> : page === "reports" ? <ReportsPage demo={demoMode} transactions={demoMode ? DEMO_TRANSACTIONS : transactionsQuery.data ?? []} records={financeRecords}/> : page === "assistant" ? <AssistantPage orgId={selectedOrg} locale={locale} onLocaleDetected={setLocale} messages={visibleMessages} pending={askMutation.isPending || workspaceLoading} onAsk={askSaathi} onSpeak={speakReply} form={chatForm} submit={onAsk}/> : <ModuleUnavailable page={page} onBack={() => setPage("overview")}/>}
+        </> : page === "sales" ? <SalesInsightsPage demo={demoMode} transactions={demoMode ? DEMO_TRANSACTIONS : transactionsQuery.data ?? []} onViewProfit={() => setPage("inventory")}/> : page === "cashflow" ? <CashflowPage demo={demoMode} transactions={demoMode ? DEMO_TRANSACTIONS : transactionsQuery.data ?? []}/> : page === "customers" ? <LedgerPage records={financeRecords} canSave={!!token && financeReadyToken === token} onAdd={saveLedgerRecord} locale={locale}/> : page === "inventory" ? <OperationsPage records={financeRecords} canSave={!!token && financeReadyToken === token} onAdd={saveLedgerRecord} onSpeak={speakReply} locale={locale}/> : page === "reports" ? <ReportsPage demo={demoMode} transactions={demoMode ? DEMO_TRANSACTIONS : transactionsQuery.data ?? []} records={financeRecords}/> : page === "settings" ? <SettingsPage accountName={accountLabel} email={email} theme={theme} onThemeChange={setTheme} records={financeRecords} demoMode={demoMode} onExport={exportSavedRecords} onSignOut={() => void signOut()}/> : page === "assistant" ? <AssistantPage orgId={selectedOrg} locale={locale} onLocaleDetected={setLocale} messages={visibleMessages} pending={askMutation.isPending || workspaceLoading} onAsk={askSaathi} onSpeak={speakReply} form={chatForm} submit={onAsk}/> : <ModuleUnavailable page={page} onBack={() => setPage("overview")}/>}
         <footer className="page-footer"><span>Paytm Saathi · Connected data only · API availability varies by service.</span><span><button onClick={() => setPage("settings")}>Privacy &amp; data</button><i/><button onClick={() => setPage("support")}>Support</button></span></footer>
       </div>
       <nav className="mobile-bottom-nav" aria-label="Quick navigation">{nav.slice(0,5).map((item) => { const Icon=item.icon; return <button key={item.key} className={page===item.key?"active":""} onClick={()=>setPage(item.key)}><Icon size={18}/><span>{item.label}</span></button>; })}</nav>
@@ -367,7 +391,6 @@ export function MerchantApp() {
 
 function MetricCard({label,value,detail,icon,tone}:{label:string;value:string;detail:string;icon:string;tone:string}) { return <article className="metric-card"><div className="metric-head"><span>{label}</span><span className={`metric-symbol ${tone}`}>{icon}</span></div><div className="metric-value">{value}</div><div className="metric-foot"><span>{detail}</span></div></article>; }
 function EmptyChart({message}:{message:string}) { return <div className="empty-chart"><ChartNoAxesCombined size={24}/><strong>No trend data yet</strong><span>{message}</span></div>; }
-function DemoSalesChart() { const max = Math.max(...DEMO_DAILY_SALES.map((day) => day.amountMinor)); return <div className="demo-chart" role="img" aria-label={`Demo daily sales for ${DEMO_RANGE}`}>{DEMO_DAILY_SALES.map((day) => <div className="demo-chart-day" key={day.label}><span>{money(day.amountMinor)}</span><div className="demo-chart-track"><i style={{height:`${Math.max(10,Math.round(day.amountMinor/max*100))}%`}}/></div><small>{day.label}</small></div>)}</div>; }
 function TransactionList({data,loading,error,canQuery,locale}:{data:Transaction[];loading:boolean;error:Error|null;canQuery:boolean;locale:Locale}) { if(!canQuery)return <div className="empty-list"><ShieldCheck size={23}/><strong>Sign in to view transactions</strong><span>Payment activity is available only to an authorized merchant session.</span></div>; if(loading)return <div className="empty-list">Loading authorized transactions…</div>; if(error)return <div className="empty-list">Transactions could not be loaded: {error.message}</div>; if(!data.length)return <div className="empty-list"><WalletCards size={23}/><strong>No authorized transactions</strong><span>Recent payment activity will show here when the shared API provides records.</span></div>; return <div className="activity-list">{data.map((item)=><div className="activity-row" key={item.id}><span className="activity-icon payment-icon"><CreditCard size={16}/></span><div className="activity-main"><strong>{item.payment_method ?? "Payment"}</strong><span>{new Date(item.occurred_at).toLocaleString(locale === "hi" ? "hi-IN" : locale === "kn" ? "kn-IN" : "en-IN",{timeZone:"Asia/Kolkata"})} · {item.status}</span></div><strong className="activity-amount">{money(item.amount_minor,item.currency)}</strong></div>)}</div>; }
 function FeatureAvailability({items}:{items:[string,boolean][]}) { return <div className="feature-availability">{items.map(([label,available])=><div key={label}><span className="availability-dot"/><span>{label}</span><small>{available?"Available":"Not connected"}</small></div>)}</div>; }
 

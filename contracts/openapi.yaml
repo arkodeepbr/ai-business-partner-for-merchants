@@ -228,12 +228,13 @@ components:
         content: { type: string, minLength: 1, maxLength: 4000 }
     WorkspaceData:
       type: object
-      required: [assistant_messages, preferred_locale]
+      required: [assistant_messages, preferred_locale, preferred_theme]
       properties:
         assistant_messages:
           type: array
           items: { $ref: '#/components/schemas/WorkspaceMessage' }
         preferred_locale: { type: string, enum: [en, hi, kn] }
+        preferred_theme: { type: string, enum: [light, dark] }
     WorkspaceDataUpdate:
       type: object
       properties:
@@ -241,6 +242,7 @@ components:
           type: array
           items: { $ref: '#/components/schemas/WorkspaceMessage' }
         preferred_locale: { type: string, enum: [en, hi, kn] }
+        preferred_theme: { type: string, enum: [light, dark] }
     FinanceRecord:
       type: object
       required: [id, kind, name, amount_minor, occurred_at]

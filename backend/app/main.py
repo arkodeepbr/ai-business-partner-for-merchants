@@ -112,8 +112,8 @@ def me(user: User = Depends(current_user), db: Session = Depends(get_db)):
 def get_workspace_data(user: User = Depends(current_user), db: Session = Depends(get_db)):
     workspace = db.get(UserWorkspaceData, user.id)
     if not workspace:
-        return WorkspaceDataResponse(assistant_messages=[], preferred_locale="en")
-    return WorkspaceDataResponse(assistant_messages=workspace.assistant_messages, preferred_locale=workspace.preferred_locale)
+        return WorkspaceDataResponse(assistant_messages=[], preferred_locale="en", preferred_theme="light")
+    return WorkspaceDataResponse(assistant_messages=workspace.assistant_messages, preferred_locale=workspace.preferred_locale, preferred_theme=workspace.preferred_theme)
 
 
 @app.patch("/api/v1/me/workspace", response_model=WorkspaceDataResponse)
@@ -128,9 +128,11 @@ def update_workspace_data(body: WorkspaceDataUpdate, user: User = Depends(curren
         workspace.assistant_messages = [message.model_dump() for message in body.assistant_messages]
     if body.preferred_locale is not None:
         workspace.preferred_locale = body.preferred_locale
+    if body.preferred_theme is not None:
+        workspace.preferred_theme = body.preferred_theme
     db.commit()
     db.refresh(workspace)
-    return WorkspaceDataResponse(assistant_messages=workspace.assistant_messages, preferred_locale=workspace.preferred_locale)
+    return WorkspaceDataResponse(assistant_messages=workspace.assistant_messages, preferred_locale=workspace.preferred_locale, preferred_theme=workspace.preferred_theme)
 
 
 @app.get("/api/v1/me/finance", response_model=FinanceRecordsResponse)

@@ -113,11 +113,11 @@ export function answerDemoQuestion(question: string): string {
     const netProfit = DEMO_PROFIT_SUMMARY.netProfitMinor;
     const grossProfit = DEMO_PROFIT_SUMMARY.netSalesMinor - DEMO_PROFIT_SUMMARY.netCogsMinor;
     const netMargin = DEMO_PROFIT_SUMMARY.netSalesMinor ? (netProfit / DEMO_PROFIT_SUMMARY.netSalesMinor * 100).toFixed(1) : "0.0";
-    return `Illustrative demo profit for ${DEMO_RANGE}: gross sales ${rupees(DEMO_PROFIT_SUMMARY.grossSalesMinor)}, discounts ${rupees(DEMO_PROFIT_SUMMARY.discountsMinor)}, refunds ${rupees(DEMO_PROFIT_SUMMARY.refundsMinor)}, net sales ${rupees(DEMO_PROFIT_SUMMARY.netSalesMinor)}, cost of goods after returns ${rupees(DEMO_PROFIT_SUMMARY.netCogsMinor)}, gross profit ${rupees(grossProfit)}, payment fees ${rupees(DEMO_PROFIT_SUMMARY.feesMinor)}, operating expenses ${rupees(DEMO_PROFIT_SUMMARY.expensesMinor)}, and estimated net profit ${rupees(netProfit)} (${netMargin}% net margin). These are sample figures, not Paytm account data. Stock & staff lets you record product cost, sales, discounts, fees, returns and expenses.`;
+    return `Illustrative demo profit for ${DEMO_RANGE}: gross sales ${rupees(DEMO_PROFIT_SUMMARY.grossSalesMinor)}, discounts ${rupees(DEMO_PROFIT_SUMMARY.discountsMinor)}, refunds ${rupees(DEMO_PROFIT_SUMMARY.refundsMinor)}, net sales ${rupees(DEMO_PROFIT_SUMMARY.netSalesMinor)}, cost of goods after returns ${rupees(DEMO_PROFIT_SUMMARY.netCogsMinor)}, gross profit ${rupees(grossProfit)}, payment fees ${rupees(DEMO_PROFIT_SUMMARY.feesMinor)}, operating expenses ${rupees(DEMO_PROFIT_SUMMARY.expensesMinor)}, and estimated net profit ${rupees(netProfit)} (${netMargin}% net margin). These are sample figures, not Paytm account data. The Profit planner lets you record product cost, sales, discounts, fees, returns and expenses.`;
   }
 
   if (/\b(stock|inventory|staff|customer|customers|loan|credit|gst|tax|campaign|marketing)\b/.test(query)) {
-    return `This demo has sample payment, transaction, stock and profit figures for ${DEMO_RANGE}. Three example products are shown in Stock & staff; these are illustrative and are not saved as your real inventory.`;
+    return `This demo has sample payment, transaction, stock and profit figures for ${DEMO_RANGE}. Three example products are shown in the Profit planner; these are illustrative and are not saved as your real inventory.`;
   }
   if (/settle|payout|cash flow|cashflow/.test(query)) {
     return `Demo cash flow: ${rupees(DEMO_PENDING_SETTLEMENT.amountMinor)} across ${DEMO_PENDING_SETTLEMENT.payoutCount} pending payouts, expected ${DEMO_PENDING_SETTLEMENT.expected}.` + disclaimer;

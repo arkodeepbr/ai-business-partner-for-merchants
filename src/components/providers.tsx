@@ -7,9 +7,9 @@ import { useLocalePreference } from "@/lib/locale";
 import { AuthSessionSync } from "@/components/auth-session-sync";
 
 const messages = {
-  en: { app: { overview: "Overview", sales: "Sales insights", cashflow: "Cash flow", customers: "Customers", inventory: "Stock & staff", reports: "Reports" } },
-  hi: { app: { overview: "अवलोकन", sales: "बिक्री की जानकारी", cashflow: "नकदी प्रवाह", customers: "ग्राहक", inventory: "स्टॉक और कर्मचारी", reports: "रिपोर्ट" } },
-  kn: { app: { overview: "ಅವಲೋಕನ", sales: "ಮಾರಾಟದ ಮಾಹಿತಿ", cashflow: "ನಗದು ಹರಿವು", customers: "ಗ್ರಾಹಕರು", inventory: "ಸ್ಟಾಕ್ ಮತ್ತು ಸಿಬ್ಬಂದಿ", reports: "ವರದಿಗಳು" } },
+  en: { app: { overview: "Overview", sales: "Sales insights", cashflow: "Cash flow", customers: "Customers", inventory: "Profit planner", reports: "Reports" } },
+  hi: { app: { overview: "अवलोकन", sales: "बिक्री की जानकारी", cashflow: "नकदी प्रवाह", customers: "ग्राहक", inventory: "लाभ योजना", reports: "रिपोर्ट" } },
+  kn: { app: { overview: "ಅವಲೋಕನ", sales: "ಮಾರಾಟದ ಮಾಹಿತಿ", cashflow: "ನಗದು ಹರಿವು", customers: "ಗ್ರಾಹಕರು", inventory: "ಲಾಭ ಯೋಜಕ", reports: "ವರದಿಗಳು" } },
 };
 
 export function Providers({ children }: { children: React.ReactNode }) {

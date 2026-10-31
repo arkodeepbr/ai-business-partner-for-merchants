@@ -513,11 +513,15 @@ export interface components {
             assistant_messages: components["schemas"]["WorkspaceMessage"][];
             /** @enum {string} */
             preferred_locale: "en" | "hi" | "kn";
+            /** @enum {string} */
+            preferred_theme: "light" | "dark";
         };
         WorkspaceDataUpdate: {
             assistant_messages?: components["schemas"]["WorkspaceMessage"][];
             /** @enum {string} */
             preferred_locale?: "en" | "hi" | "kn";
+            /** @enum {string} */
+            preferred_theme?: "light" | "dark";
         };
         FinanceRecord: {
             id: string;

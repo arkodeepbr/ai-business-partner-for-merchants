@@ -36,6 +36,7 @@ class UserWorkspaceData(Base):
     assistant_messages: Mapped[list[dict]] = mapped_column(JSON, nullable=False, default=list)
     finance_records: Mapped[list[dict]] = mapped_column(JSON, nullable=False, default=list)
     preferred_locale: Mapped[str] = mapped_column(String(2), nullable=False, default="en")
+    preferred_theme: Mapped[str] = mapped_column(String(8), nullable=False, default="light")
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, onupdate=now_utc, nullable=False)
 
 

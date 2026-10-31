@@ -53,11 +53,13 @@ class WorkspaceMessage(BaseModel):
 class WorkspaceDataResponse(BaseModel):
     assistant_messages: list[WorkspaceMessage]
     preferred_locale: Literal["en", "hi", "kn"]
+    preferred_theme: Literal["light", "dark"] = "light"
 
 
 class WorkspaceDataUpdate(BaseModel):
     assistant_messages: list[WorkspaceMessage] | None = None
     preferred_locale: Literal["en", "hi", "kn"] | None = None
+    preferred_theme: Literal["light", "dark"] | None = None
 
 
 class FinanceRecord(BaseModel):
