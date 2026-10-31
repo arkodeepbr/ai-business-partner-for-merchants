@@ -522,7 +522,7 @@ export interface components {
         FinanceRecord: {
             id: string;
             /** @enum {string} */
-            kind: "contact_added" | "money_lent" | "money_repaid" | "money_borrowed" | "money_borrowed_repaid" | "loan_taken" | "loan_payment" | "transfer_recorded" | "inventory_item" | "inventory_adjustment" | "inventory_sale" | "expense_recorded";
+            kind: "contact_added" | "money_lent" | "money_repaid" | "money_borrowed" | "money_borrowed_repaid" | "loan_taken" | "loan_payment" | "transfer_recorded" | "inventory_item" | "inventory_adjustment" | "inventory_sale" | "inventory_return" | "expense_recorded";
             name: string;
             phone?: string | null;
             amount_minor: number;
@@ -538,6 +538,8 @@ export interface components {
             quantity_delta?: number | null;
             unit_cost_minor?: number | null;
             unit_price_minor?: number | null;
+            discount_minor?: number | null;
+            fees_minor?: number | null;
         };
         FinanceRecords: {
             records: components["schemas"]["FinanceRecord"][];

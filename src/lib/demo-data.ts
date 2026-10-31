@@ -38,6 +38,30 @@ export const DEMO_DAILY_SALES = [
   { label: "30 Oct", amountMinor: 449900, count: 3 },
 ];
 
+// Illustrative, internally reconciled sample P&L used when there is no connected merchant account.
+// Values are in paise; amounts are never written to the signed-in account.
+export const DEMO_PROFIT_DAILY = [
+  { label: "24 Oct", amountMinor: 605500, count: 3, discountsMinor: 12000, refundsMinor: 5000, cogsMinor: 340000, returnedCogsMinor: 5000, feesMinor: 9100, expensesMinor: 85000, profitMinor: 176400 },
+  { label: "25 Oct", amountMinor: 243000, count: 2, discountsMinor: 8000, refundsMinor: 0, cogsMinor: 135000, returnedCogsMinor: 0, feesMinor: 3600, expensesMinor: 35000, profitMinor: 69400 },
+  { label: "26 Oct", amountMinor: 454800, count: 3, discountsMinor: 7500, refundsMinor: 6000, cogsMinor: 260000, returnedCogsMinor: 5000, feesMinor: 6800, expensesMinor: 70000, profitMinor: 123000 },
+  { label: "27 Oct", amountMinor: 1047000, count: 3, discountsMinor: 20000, refundsMinor: 10000, cogsMinor: 580000, returnedCogsMinor: 5000, feesMinor: 15700, expensesMinor: 150000, profitMinor: 306300 },
+  { label: "28 Oct", amountMinor: 769900, count: 3, discountsMinor: 12500, refundsMinor: 0, cogsMinor: 430000, returnedCogsMinor: 0, feesMinor: 11500, expensesMinor: 95000, profitMinor: 233400 },
+  { label: "29 Oct", amountMinor: 813900, count: 4, discountsMinor: 15000, refundsMinor: 10000, cogsMinor: 465000, returnedCogsMinor: 5000, feesMinor: 12200, expensesMinor: 115000, profitMinor: 226700 },
+  { label: "30 Oct", amountMinor: 449900, count: 3, discountsMinor: 10000, refundsMinor: 5000, cogsMinor: 280000, returnedCogsMinor: 0, feesMinor: 6900, expensesMinor: 70000, profitMinor: 93000 },
+];
+export const DEMO_PROFIT_SUMMARY = DEMO_PROFIT_DAILY.reduce((totals, day) => ({
+  grossSalesMinor: totals.grossSalesMinor + day.amountMinor + day.discountsMinor + day.refundsMinor,
+  discountsMinor: totals.discountsMinor + day.discountsMinor,
+  refundsMinor: totals.refundsMinor + day.refundsMinor,
+  netSalesMinor: totals.netSalesMinor + day.amountMinor,
+  cogsMinor: totals.cogsMinor + day.cogsMinor,
+  returnedCogsMinor: totals.returnedCogsMinor + day.returnedCogsMinor,
+  netCogsMinor: totals.netCogsMinor + day.cogsMinor - day.returnedCogsMinor,
+  feesMinor: totals.feesMinor + day.feesMinor,
+  expensesMinor: totals.expensesMinor + day.expensesMinor,
+  netProfitMinor: totals.netProfitMinor + day.profitMinor,
+}), { grossSalesMinor: 0, discountsMinor: 0, refundsMinor: 0, netSalesMinor: 0, cogsMinor: 0, returnedCogsMinor: 0, netCogsMinor: 0, feesMinor: 0, expensesMinor: 0, netProfitMinor: 0 });
+
 export const DEMO_PENDING_SETTLEMENT = { amountMinor: 864000, payoutCount: 2, expected: "31 Oct" };
 
 const successfulTransactions = DEMO_TRANSACTIONS.filter((item) => item.status === "succeeded");
@@ -59,8 +83,15 @@ export function answerDemoQuestion(question: string): string {
   const yesterdaySales = DEMO_DAILY_SALES[DEMO_DAILY_SALES.length - 2];
   const bestDay = DEMO_DAILY_SALES.reduce((best, item) => item.amountMinor > best.amountMinor ? item : best);
 
+  if (/profit|margin|cogs|cost of goods|discount|refund|returns?|expenses?|net income|लाभ|मुनाफा|खर्च|ರಫ್ತು|ಲಾಭ|ಖರ್ಚು/u.test(query)) {
+    const netProfit = DEMO_PROFIT_SUMMARY.netProfitMinor;
+    const grossProfit = DEMO_PROFIT_SUMMARY.netSalesMinor - DEMO_PROFIT_SUMMARY.netCogsMinor;
+    const netMargin = DEMO_PROFIT_SUMMARY.netSalesMinor ? (netProfit / DEMO_PROFIT_SUMMARY.netSalesMinor * 100).toFixed(1) : "0.0";
+    return `Illustrative demo profit for ${DEMO_RANGE}: gross sales ${rupees(DEMO_PROFIT_SUMMARY.grossSalesMinor)}, discounts ${rupees(DEMO_PROFIT_SUMMARY.discountsMinor)}, refunds ${rupees(DEMO_PROFIT_SUMMARY.refundsMinor)}, net sales ${rupees(DEMO_PROFIT_SUMMARY.netSalesMinor)}, cost of goods after returns ${rupees(DEMO_PROFIT_SUMMARY.netCogsMinor)}, gross profit ${rupees(grossProfit)}, payment fees ${rupees(DEMO_PROFIT_SUMMARY.feesMinor)}, operating expenses ${rupees(DEMO_PROFIT_SUMMARY.expensesMinor)}, and estimated net profit ${rupees(netProfit)} (${netMargin}% net margin). These are sample figures, not Paytm account data. Stock & staff lets you record product cost, sales, discounts, fees, returns and expenses.`;
+  }
+
   if (/\b(stock|inventory|staff|customer|customers|loan|credit|gst|tax|campaign|marketing)\b/.test(query)) {
-    return `This demo has sample payment, transaction and settlement data for ${DEMO_RANGE}. It does not include mock stock, staff, customer, lending or tax records yet.`;
+    return `This demo has sample payment, transaction, stock and profit figures for ${DEMO_RANGE}. Three example products are shown in Stock & staff; these are illustrative and are not saved as your real inventory.`;
   }
   if (/settle|payout|cash flow|cashflow/.test(query)) {
     return `Demo cash flow: ${rupees(DEMO_PENDING_SETTLEMENT.amountMinor)} across ${DEMO_PENDING_SETTLEMENT.payoutCount} pending payouts, expected ${DEMO_PENDING_SETTLEMENT.expected}.` + disclaimer;

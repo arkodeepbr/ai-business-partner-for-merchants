@@ -15,7 +15,7 @@ import { OperationsPage } from "@/components/operations-page";
 import { useSession } from "@/lib/auth";
 import { useLocalePreference, type Locale } from "@/lib/locale";
 import { interpretSaathiCommand } from "@/lib/saathi-commands";
-import { answerDemoQuestion, DEMO_DAILY_SALES, DEMO_PENDING_SETTLEMENT, DEMO_RANGE, DEMO_SALES_SUMMARY, DEMO_TRANSACTIONS } from "@/lib/demo-data";
+import { answerDemoQuestion, DEMO_DAILY_SALES, DEMO_PENDING_SETTLEMENT, DEMO_PROFIT_SUMMARY, DEMO_RANGE, DEMO_SALES_SUMMARY, DEMO_TRANSACTIONS } from "@/lib/demo-data";
 import { prepareVoicePlayback, speakSaathi, type VoiceLocale } from "@/lib/voice";
 import { useTranslations } from "next-intl";
 import { createClient as createSupabaseClient } from "@/lib/supabase/client";
@@ -30,6 +30,7 @@ function currentWeek() {
   return { start: start.toISOString(), end: end.toISOString() };
 }
 const money = (minor: number, currency = "INR") => new Intl.NumberFormat("en-IN", { style: "currency", currency, maximumFractionDigits: 2 }).format(minor / 100);
+const currentTimestamp = () => Date.now();
 function shortSpokenReply(text: string) {
   const firstSentences = text.trim().split(/(?<=[.!?।])\s+/u).slice(0, 2).join(" ");
   const words = firstSentences.split(/\s+/u);
@@ -212,6 +213,36 @@ export function MerchantApp() {
       const response = due.length ? `You owe: ${due.map(x => `${x.name}, ${money(x.amount)}`).join("; ")}. Total to repay: ${money(due.reduce((sum,x)=>sum+x.amount,0))}.` : "You have no outstanding borrowed balance in your saved ledger.";
       setPage("customers"); setMessages(items=>[...items,{role:"user",text:question},{role:"assistant",text:response}]); return;
     }
+    const profitQuestion = /\b(profit|profitability|margin|cogs|cost of goods|discount|refund|returns?|expenses?|net income|sales target|earnings?)\b|लाभ|मुनाफा|खर्च|ರಫ್ತು|ಲಾಭ|ಖರ್ಚು/iu.test(question);
+    if (profitQuestion) {
+      if (token && financeReadyToken !== token) { setCommandNotice("Your saved sales and cost records are still loading. Please try again in a moment."); return; }
+      const cutoff = currentTimestamp() - 7 * 24 * 60 * 60 * 1000;
+      const recorded = financeRecords.filter((item) => item.occurred_at && new Date(item.occurred_at).getTime() >= cutoff);
+      const sales = recorded.filter((item) => item.kind === "inventory_sale");
+      const returns = recorded.filter((item) => item.kind === "inventory_return");
+      const expenses = recorded.filter((item) => item.kind === "expense_recorded");
+      const useSample = !financeRecords.some((item) => ["inventory_item", "inventory_sale", "inventory_return", "expense_recorded"].includes(item.kind));
+      const facts = useSample ? DEMO_PROFIT_SUMMARY : {
+        grossSalesMinor: sales.reduce((sum, item) => sum + item.amount_minor + (item.discount_minor ?? 0), 0),
+        discountsMinor: sales.reduce((sum, item) => sum + (item.discount_minor ?? 0), 0),
+        refundsMinor: returns.reduce((sum, item) => sum + item.amount_minor, 0),
+        netSalesMinor: sales.reduce((sum, item) => sum + item.amount_minor, 0) - returns.reduce((sum, item) => sum + item.amount_minor, 0),
+        netCogsMinor: sales.reduce((sum, item) => sum + (item.unit_cost_minor ?? 0) * (item.quantity ?? 0), 0) - returns.reduce((sum, item) => sum + (item.unit_cost_minor ?? 0) * (item.quantity ?? 0), 0),
+        feesMinor: sales.reduce((sum, item) => sum + (item.fees_minor ?? 0), 0),
+        expensesMinor: expenses.reduce((sum, item) => sum + item.amount_minor, 0),
+      };
+      const netProfitMinor = facts.netSalesMinor - facts.netCogsMinor - facts.feesMinor - facts.expensesMinor;
+      const context = `${useSample ? "Use only ILLUSTRATIVE SAMPLE data, never describe it as the merchant's real Paytm results." : "Use the signed-in user's saved manual ledger records, not live Paytm data."} Seven-day profit facts (INR paise): ${JSON.stringify({ ...facts, netProfitMinor, grossMarginPercent: facts.netSalesMinor ? Number(((facts.netSalesMinor - facts.netCogsMinor) / facts.netSalesMinor * 100).toFixed(1)) : 0, netMarginPercent: facts.netSalesMinor ? Number((netProfitMinor / facts.netSalesMinor * 100).toFixed(1)) : 0 })}. Explain gross sales, discounts, refunds, net sales, COGS, fees, operating expenses and net profit. Clearly label sample figures. Tell the user they can add/edit product costs, record sales, discounts, fees, returns and expenses on Stock & staff.`;
+      const history = messages.slice(-10).map((item) => ({ role: item.role, content: item.text }));
+      if (token) {
+        setCommandNotice(""); setMessages((items) => [...items, { role: "user", text: question }]);
+        askMutation.mutate({ question, context, history, organizationId: selectedOrg, locale: responseLocale, grounded: false });
+      } else {
+        const response = `Sample profit for ${DEMO_RANGE}: gross sales ₹45,050 less discounts ₹850 and refunds ₹360 gives net sales ₹43,840. After net cost of goods ₹24,700, payment fees ₹658 and operating expenses ₹6,200, estimated net profit is ₹12,282 (28.0% net margin). These figures are illustrative only. On Stock & staff you can record products, sale quantities, cost of goods, discounts, fees, returns and expenses.`;
+        setPage("inventory"); setMessages((items) => [...items, { role: "user", text: question }, { role: "assistant", text: response }]);
+      }
+      return;
+    }
     const lentMatch = question.match(/(?:i\s+)?(?:lent|loaned|gave)\s+(?:₹|rs\.?\s*)?([\d,]+(?:\.\d{1,2})?)\s+(?:to\s+)?(.+?)(?:\s+(?:today|yesterday))?\s*$/iu);
     const borrowedMatch = question.match(/(?:i\s+)?borrowed\s+(?:₹|rs\.?\s*)?([\d,]+(?:\.\d{1,2})?)\s+from\s+(.+?)\s*$/iu);
     const borrowedRepaymentMatch = question.match(/(?:i\s+)?repaid\s+(?:₹|rs\.?\s*)?([\d,]+(?:\.\d{1,2})?)\s+to\s+(.+?)\s*$/iu);
@@ -304,7 +335,7 @@ export function MerchantApp() {
           <section className="metric-grid" aria-label={demoMode ? "Sample demo sales metrics" : "Authorized business metrics"}><MetricCard label="Gross collections" value={displayedGross} detail={demoMode ? "Successful sample payments · excludes failures" : salesQuery.data ? "Successful payments · excludes refunds and fees" : "Waiting for authorized data"} icon="₹" tone="teal"/><MetricCard label="Successful payments" value={displayedCount} detail={demoMode ? `Sample week · ${DEMO_RANGE}` : "In the selected period"} icon="✓" tone="violet"/><MetricCard label="Average payment" value={displayedAverage} detail="Gross collections ÷ successful payments" icon="⌁" tone="amber"/><MetricCard label="Pending settlement" value={demoMode ? money(DEMO_PENDING_SETTLEMENT.amountMinor) : "—"} detail={demoMode ? `${DEMO_PENDING_SETTLEMENT.payoutCount} sample payouts · expected ${DEMO_PENDING_SETTLEMENT.expected}` : "Settlement data is not available in API yet"} icon="↓" tone="pink"/></section>
           <section className="content-grid"><article className="panel sales-panel"><div className="panel-header"><div><h3>Collections summary</h3><p>{demoMode ? `Sample sales · ${DEMO_RANGE}` : "Authorized period total"}</p></div><span className="chart-period">{demoMode ? "DEMO" : "Last 7 days"}</span></div>{demoMode ? <DemoSalesChart/> : <EmptyChart message={salesQuery.data ? "The sales API currently returns a period total, not dated daily values." : "Daily totals will appear when the analytics API returns dated records."}/>}<div className="definition-note"><ShieldCheck size={15}/><span>{demoMode ? "Illustrative sample transactions; not a merchant statement." : salesQuery.data?.definition ?? "No totals are estimated or substituted while data is unavailable."}</span></div></article><article className="panel activity-panel"><div className="panel-header"><div><h3>Recent transactions</h3><p>{demoMode ? "Illustrative sample activity" : "Latest authorized payment activity"}</p></div><button className="text-action" onClick={() => setPage("sales")}>View sales <ArrowRight size={14}/></button></div><TransactionList data={demoMode ? DEMO_TRANSACTIONS.slice(0,8) : transactionsQuery.data ?? []} loading={!demoMode && transactionsQuery.isPending && !!token} error={demoMode ? null : transactionsQuery.error as Error | null} canQuery={demoMode || (!!token && !!selectedOrg)} locale={locale}/></article></section>
           <section className="bottom-grid"><AssistantCard orgId={selectedOrg} locale={locale} onLocaleDetected={setLocale} messages={visibleMessages} pending={askMutation.isPending || workspaceLoading} onAsk={askSaathi} onSpeak={speakReply} form={chatForm} submit={onAsk}/><article className="panel readiness-panel"><div className="panel-header"><div><h3>Business tools</h3><p>Availability from the shared API contract</p></div><BriefcaseBusiness size={18}/></div><FeatureAvailability items={[["Settlements & cash flow", false],["Inventory & purchase orders", false],["Customers & campaigns", false],["Tax & report exports", false],["Approvals & notifications", false]]}/></article></section>
-        </> : page === "sales" ? <SalesInsightsPage demo={demoMode} transactions={demoMode ? DEMO_TRANSACTIONS : transactionsQuery.data ?? []}/> : page === "cashflow" ? <CashflowPage demo={demoMode} transactions={demoMode ? DEMO_TRANSACTIONS : transactionsQuery.data ?? []}/> : page === "customers" ? <LedgerPage records={financeRecords} canSave={!!token && financeReadyToken === token} onAdd={saveLedgerRecord}/> : page === "loans" ? <LoansPage records={financeRecords} canSave={!!token && financeReadyToken === token} onAdd={saveLedgerRecord}/> : page === "inventory" ? <OperationsPage records={financeRecords} canSave={!!token && financeReadyToken === token} onAdd={saveLedgerRecord} onSpeak={speakReply} locale={locale}/> : page === "assistant" ? <AssistantPage orgId={selectedOrg} locale={locale} onLocaleDetected={setLocale} messages={visibleMessages} pending={askMutation.isPending || workspaceLoading} onAsk={askSaathi} onSpeak={speakReply} form={chatForm} submit={onAsk}/> : <ModuleUnavailable page={page} onBack={() => setPage("overview")}/>}
+        </> : page === "sales" ? <SalesInsightsPage demo={demoMode} transactions={demoMode ? DEMO_TRANSACTIONS : transactionsQuery.data ?? []} onViewProfit={() => setPage("inventory")}/> : page === "cashflow" ? <CashflowPage demo={demoMode} transactions={demoMode ? DEMO_TRANSACTIONS : transactionsQuery.data ?? []}/> : page === "customers" ? <LedgerPage records={financeRecords} canSave={!!token && financeReadyToken === token} onAdd={saveLedgerRecord}/> : page === "loans" ? <LoansPage records={financeRecords} canSave={!!token && financeReadyToken === token} onAdd={saveLedgerRecord}/> : page === "inventory" ? <OperationsPage records={financeRecords} canSave={!!token && financeReadyToken === token} onAdd={saveLedgerRecord} onSpeak={speakReply} locale={locale}/> : page === "assistant" ? <AssistantPage orgId={selectedOrg} locale={locale} onLocaleDetected={setLocale} messages={visibleMessages} pending={askMutation.isPending || workspaceLoading} onAsk={askSaathi} onSpeak={speakReply} form={chatForm} submit={onAsk}/> : <ModuleUnavailable page={page} onBack={() => setPage("overview")}/>}
         <footer className="page-footer"><span>Paytm Saathi · Connected data only · API availability varies by service.</span><span><button onClick={() => setPage("settings")}>Privacy &amp; data</button><i/><button onClick={() => setPage("support")}>Support</button></span></footer>
       </div>
       <nav className="mobile-bottom-nav" aria-label="Quick navigation">{nav.slice(0,5).map((item) => { const Icon=item.icon; return <button key={item.key} className={page===item.key?"active":""} onClick={()=>setPage(item.key)}><Icon size={18}/><span>{item.label}</span></button>; })}</nav>

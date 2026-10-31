@@ -337,4 +337,11 @@ h1,h2,h3,p { margin-top: 0; }
 .business-ai-advice { margin-top:12px; padding:13px 14px; border:1px solid #dcebe5; border-radius:10px; background:linear-gradient(145deg,#f5fbf8,#fff); }
 .business-ai-advice strong { color:#0d806e; font-size:10px; }
 .business-ai-advice p { margin:7px 0 0; color:#58675f; font-size:10px; line-height:1.7; white-space:pre-wrap; }
+.profit-breakdown { display:grid; gap:0; margin:10px 0 18px; border:1px solid #e5eee9; border-radius:12px; overflow:hidden; }
+.profit-breakdown>div { display:flex; justify-content:space-between; gap:16px; padding:10px 14px; border-bottom:1px solid #edf2ef; font-size:13px; }
+.profit-breakdown>div:last-child { border-bottom:0; }
+.profit-breakdown .total { background:#f4faf7; font-weight:700; }
+.profit-breakdown .profit { color:#087c69; background:#e9f7f2; font-size:15px; }
+.profit-breakdown b { white-space:nowrap; }
+.recent-sale-ledger { display:grid; }
 @media(max-width:700px){.loan-planner{grid-template-columns:1fr 1fr}}
