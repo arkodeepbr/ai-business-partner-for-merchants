@@ -34,6 +34,12 @@ The auth foundation verifies short lived signed bearer tokens and active users. 
 
 The signed-in workspace stores the user's complete Saathi chat history, preferred language, contacts, and self-entered lend/borrow/repayment ledger in `user_workspace_data`, keyed to the authenticated user. The API derives the owner from the verified bearer token; clients cannot choose another user's ID. Apply `alembic upgrade head` to create the table and finance-record column. Merchant transactions and settlements remain organization-scoped in their existing tables and are visible only to members of that organization. Recorded transfers are demo-only and do not move funds.
 
+### Telegram ledger bot
+
+The optional private Telegram bot links to one Saathi account with a short-lived one-use code created in **Settings → Telegram**. It can record English messages such as `I lent 200 to Ravi`, `I borrowed 500 from Priya`, `I repaid 100 to Priya`, and `Ravi repaid me 100`; it always asks for YES/NO confirmation before writing to that account's finance ledger. It also answers `who owes me?` and `who do I owe?`. It does not initiate bank transfers or read merchant/payment data.
+
+Create a bot with Telegram's `@BotFather`, then put `TELEGRAM_BOT_TOKEN` and `TELEGRAM_BOT_USERNAME` in the backend's ignored `.env`. Apply `alembic upgrade head` and restart the API. For local development, leave `TELEGRAM_WEBHOOK_URL` blank and keep the API process running; the backend receives updates using long polling, so a public URL is not needed. Production webhooks require a public HTTPS endpoint and a random `TELEGRAM_WEBHOOK_SECRET` of at least 32 characters. Keep the BotFather token private. Telegram's bot API is free to use; the backend host still needs to stay online.
+
 The provider adapter is sandbox-only and returns no records. No public Paytm or Soundbox API is assumed. `PROVIDER_MODE=production` does not create a production connector; live mode remains unavailable until an approved provider adapter and credentials are supplied.
 
 ### Optional assistant language provider

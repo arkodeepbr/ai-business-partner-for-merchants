@@ -40,6 +40,30 @@ class UserWorkspaceData(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, onupdate=now_utc, nullable=False)
 
 
+class TelegramLink(Base):
+    __tablename__ = "telegram_links"
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    telegram_user_id: Mapped[int | None] = mapped_column(BigInteger, unique=True)
+    telegram_chat_id: Mapped[int | None] = mapped_column(BigInteger, unique=True)
+    link_code_hash: Mapped[str | None] = mapped_column(String(64), unique=True)
+    link_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    pending_action: Mapped[dict | None] = mapped_column(JSON)
+    pending_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+
+
+class TelegramProcessedUpdate(Base):
+    __tablename__ = "telegram_processed_updates"
+    update_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    processed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc, nullable=False)
+
+
+class TelegramPollingState(Base):
+    __tablename__ = "telegram_polling_state"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    next_update_id: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+
+
 class Membership(Base):
     __tablename__ = "merchant_memberships"
     __table_args__ = (UniqueConstraint("user_id", "organization_id"),)

@@ -86,6 +86,44 @@ paths:
               schema: { $ref: '#/components/schemas/FinanceRecords' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '422': { description: Invalid finance record }
+  /api/v1/me/integrations/telegram:
+    get:
+      tags: [integrations]
+      summary: Read Telegram bot configuration and private account link status
+      responses:
+        '200':
+          description: Telegram integration status, without bot credentials
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TelegramIntegrationStatus' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    delete:
+      tags: [integrations]
+      summary: Unlink Telegram from the signed-in account
+      responses:
+        '200':
+          description: Telegram unlinked
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [linked]
+                properties:
+                  linked: { type: boolean, const: false }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/v1/me/integrations/telegram/link-code:
+    post:
+      tags: [integrations]
+      summary: Create a private, single-use Telegram linking code
+      responses:
+        '200':
+          description: Linking code, valid for ten minutes
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TelegramLinkCode' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { description: Account already has Telegram linked }
+        '503': { description: Telegram bot has not been configured by the operator }
   /api/v1/auth/session:
     post:
       security: []
@@ -243,6 +281,22 @@ components:
           items: { $ref: '#/components/schemas/WorkspaceMessage' }
         preferred_locale: { type: string, enum: [en, hi, kn] }
         preferred_theme: { type: string, enum: [light, dark] }
+    TelegramIntegrationStatus:
+      type: object
+      required: [configured, linked]
+      properties:
+        configured: { type: boolean }
+        linked: { type: boolean }
+        bot_username: { type: [string, 'null'] }
+        transport: { type: [string, 'null'], enum: [polling, webhook] }
+    TelegramLinkCode:
+      type: object
+      required: [code, expires_in_seconds]
+      properties:
+        code: { type: string, pattern: '^[A-F0-9]{10}$' }
+        expires_in_seconds: { type: integer, const: 600 }
+        bot_username: { type: [string, 'null'] }
+        start_link: { type: [string, 'null'], format: uri }
     FinanceRecord:
       type: object
       required: [id, kind, name, amount_minor, occurred_at]

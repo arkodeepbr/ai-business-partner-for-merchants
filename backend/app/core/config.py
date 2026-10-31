@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     ai_api_base_url: str = ""
     ai_api_key: SecretStr = SecretStr("")
     ai_model: str = ""
+    telegram_bot_token: SecretStr = SecretStr("")
+    telegram_bot_username: str = ""
+    telegram_webhook_url: str = ""
+    telegram_webhook_secret: SecretStr = SecretStr("")
     ai_data_consent_organization_ids: list[str] = Field(default_factory=list)
     cors_origins: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 
@@ -42,6 +46,10 @@ class Settings(BaseSettings):
             raise ValueError("AI_API_BASE_URL must use HTTPS outside local development")
         if self.supabase_url and not self.supabase_url.startswith(("https://", "http://localhost", "http://127.0.0.1")):
             raise ValueError("SUPABASE_URL must use HTTPS outside local development")
+        if self.telegram_webhook_url and not self.telegram_webhook_url.startswith("https://"):
+            raise ValueError("TELEGRAM_WEBHOOK_URL must use HTTPS")
+        if self.telegram_webhook_url and (not self.telegram_bot_token.get_secret_value() or len(self.telegram_webhook_secret.get_secret_value()) < 32):
+            raise ValueError("Telegram webhooks require a bot token and a secret of at least 32 characters")
         return self
 
 

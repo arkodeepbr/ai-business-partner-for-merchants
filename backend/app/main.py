@@ -1,9 +1,12 @@
+import asyncio
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
+import hashlib
 import json
+import secrets
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
-from fastapi import Depends, FastAPI, HTTPException, Query
+from urllib.request import Request as UrlRequest, urlopen
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select, text
@@ -12,17 +15,35 @@ from sqlalchemy.orm import Session
 from app.assistant import AssistantProviderError, generate_conversational_answer, generate_grounded_answer
 from app.auth import current_user, require_membership, issue_access_token
 from app.core.config import get_settings
-from app.db import get_db, engine
-from app.models import Organization, PaymentTransaction, Settlement, User, UserWorkspaceData
-from app.schemas import AssistantChatRequest, AuthSessionRequest, AuthSessionResponse, ConversationRequest, ConversationResponse, FinanceRecordsResponse, FinanceRecordsUpdate, SalesSummary, TransactionRead, WorkspaceDataResponse, WorkspaceDataUpdate
+from app.db import SessionLocal, get_db, engine
+from app.models import Organization, PaymentTransaction, Settlement, TelegramLink, User, UserWorkspaceData
+from app.schemas import AssistantChatRequest, AuthSessionRequest, AuthSessionResponse, ConversationRequest, ConversationResponse, FinanceRecordsResponse, FinanceRecordsUpdate, SalesSummary, TelegramIntegrationStatus, TelegramLinkCodeResponse, TransactionRead, WorkspaceDataResponse, WorkspaceDataUpdate
 from app.analytics import sales_summary
+from app.telegram_bot import process_telegram_update, send_telegram_message, start_telegram_worker
 
 settings = get_settings()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    yield
+    worker = None
+    try:
+        worker = await start_telegram_worker()
+    except Exception:
+        # A Telegram outage must not prevent the regular merchant API from starting.
+        settings_for_log = get_settings()
+        if settings_for_log.telegram_bot_token.get_secret_value():
+            import logging
+            logging.getLogger(__name__).exception("Telegram bot could not start")
+    try:
+        yield
+    finally:
+        if worker:
+            worker.cancel()
+            try:
+                await worker
+            except asyncio.CancelledError:
+                pass
 
 
 app = FastAPI(title="Paytm Saathi API", version="1.0.0", openapi_url="/api/v1/openapi.json",
@@ -38,7 +59,7 @@ async def create_session(body: AuthSessionRequest, db: Session = Depends(get_db)
         raise HTTPException(503, "identity_provider_not_configured")
 
     def verify_token():
-        request = Request(f"{settings.supabase_url.rstrip('/')}/auth/v1/user", headers={
+        request = UrlRequest(f"{settings.supabase_url.rstrip('/')}/auth/v1/user", headers={
             "apikey": settings.supabase_anon_key.get_secret_value(),
             "Authorization": f"Bearer {body.access_token}",
         })
@@ -151,6 +172,66 @@ def save_finance_records(body: FinanceRecordsUpdate, user: User = Depends(curren
     db.commit()
     db.refresh(workspace)
     return FinanceRecordsResponse(records=workspace.finance_records)
+
+
+@app.get("/api/v1/me/integrations/telegram", response_model=TelegramIntegrationStatus)
+def telegram_status(user: User = Depends(current_user), db: Session = Depends(get_db)):
+    link = db.get(TelegramLink, user.id)
+    configured = bool(settings.telegram_bot_token.get_secret_value())
+    return TelegramIntegrationStatus(
+        configured=configured,
+        linked=bool(link and link.telegram_user_id and link.telegram_chat_id),
+        bot_username=settings.telegram_bot_username.strip().removeprefix("@") or None,
+        transport="webhook" if settings.telegram_webhook_url else "polling" if configured else None,
+    )
+
+
+@app.post("/api/v1/me/integrations/telegram/link-code", response_model=TelegramLinkCodeResponse)
+def create_telegram_link_code(user: User = Depends(current_user), db: Session = Depends(get_db)):
+    if not settings.telegram_bot_token.get_secret_value():
+        raise HTTPException(503, "telegram_bot_not_configured")
+    link = db.get(TelegramLink, user.id)
+    if link and link.telegram_user_id:
+        raise HTTPException(409, "telegram_already_linked")
+    code = secrets.token_hex(5).upper()
+    if not link:
+        link = TelegramLink(user_id=user.id)
+        db.add(link)
+    link.link_code_hash = hashlib.sha256(code.encode()).hexdigest()
+    link.link_expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+    db.commit()
+    username = settings.telegram_bot_username.strip().removeprefix("@") or None
+    return TelegramLinkCodeResponse(
+        code=code,
+        expires_in_seconds=600,
+        bot_username=username,
+        start_link=f"https://t.me/{username}?start=link_{code}" if username else None,
+    )
+
+
+@app.delete("/api/v1/me/integrations/telegram")
+def unlink_telegram(user: User = Depends(current_user), db: Session = Depends(get_db)):
+    link = db.get(TelegramLink, user.id)
+    if link:
+        db.delete(link)
+        db.commit()
+    return {"linked": False}
+
+
+@app.post("/api/v1/integrations/telegram/webhook", include_in_schema=False)
+async def telegram_webhook(request: Request, x_telegram_bot_api_secret_token: str | None = Header(default=None)):
+    secret = settings.telegram_webhook_secret.get_secret_value()
+    if not settings.telegram_webhook_url or not secret or not secrets.compare_digest(secret, x_telegram_bot_api_secret_token or ""):
+        raise HTTPException(403, "telegram_webhook_invalid")
+    try:
+        update = await request.json()
+    except Exception as exc:
+        raise HTTPException(400, "telegram_update_invalid") from exc
+    with SessionLocal() as db:
+        reply = await run_in_threadpool(process_telegram_update, update, db)
+    if reply:
+        await run_in_threadpool(send_telegram_message, *reply)
+    return {"ok": True}
 
 
 @app.post("/api/v1/assistant/chat", response_model=ConversationResponse)

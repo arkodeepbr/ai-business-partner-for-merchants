@@ -62,6 +62,20 @@ class WorkspaceDataUpdate(BaseModel):
     preferred_theme: Literal["light", "dark"] | None = None
 
 
+class TelegramIntegrationStatus(BaseModel):
+    configured: bool
+    linked: bool
+    bot_username: str | None = None
+    transport: Literal["polling", "webhook"] | None = None
+
+
+class TelegramLinkCodeResponse(BaseModel):
+    code: str
+    expires_in_seconds: int
+    bot_username: str | None = None
+    start_link: str | None = None
+
+
 class FinanceRecord(BaseModel):
     id: str = Field(min_length=1, max_length=64)
     kind: Literal["contact_added", "money_lent", "money_repaid", "money_borrowed", "money_borrowed_repaid", "loan_taken", "loan_payment", "transfer_recorded", "inventory_item", "inventory_adjustment", "inventory_sale", "inventory_return", "expense_recorded", "customer_purchase"]

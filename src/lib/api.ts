@@ -11,6 +11,8 @@ export type WorkspaceData = components["schemas"]["WorkspaceData"];
 export type WorkspaceDataUpdate = components["schemas"]["WorkspaceDataUpdate"];
 export type FinanceRecord = components["schemas"]["FinanceRecord"];
 export type FinanceRecordKind = FinanceRecord["kind"];
+export type TelegramIntegrationStatus = components["schemas"]["TelegramIntegrationStatus"];
+export type TelegramLinkCode = components["schemas"]["TelegramLinkCode"];
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
@@ -40,4 +42,7 @@ export const api = {
   saveWorkspace: (data: WorkspaceDataUpdate) => apiFetch<WorkspaceData>("/api/v1/me/workspace", { method: "PATCH", body: JSON.stringify(data) }),
   finance: () => apiFetch<components["schemas"]["FinanceRecords"]>("/api/v1/me/finance"),
   saveFinance: (records: FinanceRecord[]) => apiFetch<components["schemas"]["FinanceRecords"]>("/api/v1/me/finance", { method: "PUT", body: JSON.stringify({ records }) }),
+  telegramStatus: () => apiFetch<TelegramIntegrationStatus>("/api/v1/me/integrations/telegram"),
+  createTelegramLinkCode: () => apiFetch<TelegramLinkCode>("/api/v1/me/integrations/telegram/link-code", { method: "POST" }),
+  unlinkTelegram: () => apiFetch<{ linked: false }>("/api/v1/me/integrations/telegram", { method: "DELETE" }),
 };

@@ -251,6 +251,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/integrations/telegram": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Telegram bot configuration and private account link status */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Telegram integration status, without bot credentials */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TelegramIntegrationStatus"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+            };
+        };
+        put?: never;
+        post?: never;
+        /** Unlink Telegram from the signed-in account */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Telegram unlinked */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            linked: false;
+                        };
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/integrations/telegram/link-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a private, single-use Telegram linking code */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Linking code, valid for ten minutes */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TelegramLinkCode"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                /** @description Account already has Telegram linked */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Telegram bot has not been configured by the operator */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/session": {
         parameters: {
             query?: never;
@@ -522,6 +634,21 @@ export interface components {
             preferred_locale?: "en" | "hi" | "kn";
             /** @enum {string} */
             preferred_theme?: "light" | "dark";
+        };
+        TelegramIntegrationStatus: {
+            configured: boolean;
+            linked: boolean;
+            bot_username?: string | null;
+            /** @enum {string|null} */
+            transport?: "polling" | "webhook" | null;
+        };
+        TelegramLinkCode: {
+            code: string;
+            /** @constant */
+            expires_in_seconds: 600;
+            bot_username?: string | null;
+            /** Format: uri */
+            start_link?: string | null;
         };
         FinanceRecord: {
             id: string;

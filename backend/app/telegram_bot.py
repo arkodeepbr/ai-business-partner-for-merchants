@@ -1,0 +1,302 @@
+"""Telegram chat integration for account-owned money ledger records."""
+
+import asyncio
+from datetime import datetime, timedelta, timezone
+import hashlib
+import json
+import logging
+import re
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+
+from fastapi.concurrency import run_in_threadpool
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from app.core.config import get_settings
+from app.db import SessionLocal
+from app.models import TelegramLink, TelegramPollingState, TelegramProcessedUpdate, UserWorkspaceData
+
+logger = logging.getLogger(__name__)
+settings = get_settings()
+
+
+def _token() -> str:
+    return settings.telegram_bot_token.get_secret_value()
+
+
+def _telegram_call(method: str, payload: dict, timeout: int = 12) -> dict:
+    if not _token():
+        raise RuntimeError("telegram_bot_not_configured")
+    url = f"https://api.telegram.org/bot{_token()}/{method}"
+    body = urlencode({key: json.dumps(value) if isinstance(value, (dict, list)) else value for key, value in payload.items()}).encode()
+    request = Request(url, data=body, headers={"Content-Type": "application/x-www-form-urlencoded"})
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            result = json.loads(response.read())
+    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as exc:
+        raise RuntimeError("telegram_api_unavailable") from exc
+    if not result.get("ok"):
+        raise RuntimeError("telegram_api_request_failed")
+    return result
+
+
+def send_telegram_message(chat_id: int, text: str) -> None:
+    try:
+        _telegram_call("sendMessage", {"chat_id": chat_id, "text": text[:3900]})
+    except RuntimeError:
+        logger.warning("Telegram reply could not be delivered")
+
+
+def configure_telegram_webhook() -> None:
+    if settings.telegram_webhook_url:
+        _telegram_call("setWebhook", {
+            "url": settings.telegram_webhook_url,
+            "secret_token": settings.telegram_webhook_secret.get_secret_value(),
+            "allowed_updates": ["message"],
+            "drop_pending_updates": False,
+        })
+
+
+def _utc(value: datetime | None) -> datetime | None:
+    if value is None:
+        return None
+    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
+
+
+def _money(minor: int) -> str:
+    return f"₹{minor / 100:,.2f}"
+
+
+def _action_from_text(text: str) -> dict | None:
+    value = text.strip()
+    patterns = [
+        ("money_lent", re.compile(r"^(?:i\s+)?(?:lent|loaned|gave)\s+(?:₹|rs\.?\s*)?([\d,]+(?:\.\d{1,2})?)\s+to\s+(.+?)\s*[.!]?$", re.I)),
+        ("money_borrowed", re.compile(r"^(?:i\s+)?borrowed\s+(?:₹|rs\.?\s*)?([\d,]+(?:\.\d{1,2})?)\s+from\s+(.+?)\s*[.!]?$", re.I)),
+        ("money_borrowed_repaid", re.compile(r"^(?:i\s+)?repaid\s+(?:₹|rs\.?\s*)?([\d,]+(?:\.\d{1,2})?)\s+to\s+(.+?)\s*[.!]?$", re.I)),
+        ("money_repaid", re.compile(r"^(.+?)\s+repaid\s+(?:me\s+)?(?:₹|rs\.?\s*)?([\d,]+(?:\.\d{1,2})?)\s*[.!]?$", re.I)),
+    ]
+    for kind, pattern in patterns:
+        match = pattern.fullmatch(value)
+        if not match:
+            continue
+        if kind == "money_repaid":
+            name, amount = match.group(1).strip(), match.group(2)
+        else:
+            amount, name = match.group(1), match.group(2).strip()
+        amount_minor = round(float(amount.replace(",", "")) * 100)
+        if not name or len(name) > 120 or amount_minor <= 0 or amount_minor > 100_000_000_000:
+            return None
+        return {"kind": kind, "name": name, "amount_minor": amount_minor,
+                "phone": None, "note": "Recorded through linked Saathi Telegram bot"}
+    return None
+
+
+def _list_balances(records: list[dict], kinds: tuple[str, str], positive_kind: str) -> list[tuple[str, int]]:
+    balances: dict[str, tuple[str, int]] = {}
+    for item in records:
+        if item.get("kind") not in kinds:
+            continue
+        name = str(item.get("name") or "Contact")
+        key = str(item.get("phone") or name.casefold())
+        display_name, balance = balances.get(key, (name, 0))
+        delta = int(item.get("amount_minor") or 0)
+        balances[key] = (display_name, balance + delta * (1 if item.get("kind") == positive_kind else -1))
+    return [(name, balance) for name, balance in balances.values() if balance > 0]
+
+
+def _handle_text(db: Session, link: TelegramLink, telegram_user_id: int, text: str) -> str:
+    normalized = text.strip()
+    lowered = normalized.casefold()
+    if lowered.startswith("/start"):
+        parts = normalized.split(maxsplit=1)
+        if len(parts) > 1 and parts[1].lower().startswith("link_"):
+            code = parts[1][5:]
+            return _complete_link(db, code, telegram_user_id, link.telegram_chat_id)
+        if link.telegram_user_id == telegram_user_id:
+            return "Your Telegram is linked to your Saathi account. Try: ‘I lent 200 to Ravi’. I’ll ask you to confirm before saving."
+        return "Welcome to Saathi. To link your private ledger, open Settings → Telegram in your signed-in Saathi website, create a one-time link code, then send /link followed by that code here."
+    if lowered.startswith("/help"):
+        return "Try ‘I lent ₹200 to Ravi’, ‘I borrowed 500 from Priya’, ‘I repaid 100 to Priya’, or ‘Ravi repaid me 100’. Ask ‘who owes me?’ or ‘who do I owe?’. I’ll ask before saving any money entry."
+    if lowered.startswith("/link"):
+        parts = normalized.split(maxsplit=1)
+        if len(parts) != 2:
+            return "Use /link followed by the one-time code from Saathi Settings."
+        return _complete_link(db, parts[1].strip(), telegram_user_id, link.telegram_chat_id)
+
+    if link.telegram_user_id != telegram_user_id:
+        return "This Telegram account is not linked yet. Open Saathi website → Settings → Telegram and create a one-time link code."
+
+    if lowered in {"no", "nope", "cancel", "/cancel"}:
+        link.pending_action = None
+        link.pending_expires_at = None
+        db.commit()
+        return "Okay, I cancelled that entry. Nothing was saved."
+
+    if lowered in {"yes", "yes save", "confirm", "/confirm"}:
+        pending = link.pending_action
+        expires = _utc(link.pending_expires_at)
+        if not pending or not expires or expires < datetime.now(timezone.utc):
+            link.pending_action = None
+            link.pending_expires_at = None
+            db.commit()
+            return "There’s no active entry to confirm. Send the transaction details again."
+        workspace = db.get(UserWorkspaceData, link.user_id)
+        if not workspace:
+            workspace = UserWorkspaceData(user_id=link.user_id)
+            db.add(workspace)
+        record = {
+            "id": __import__("secrets").token_hex(16),
+            "kind": pending["kind"], "name": pending["name"], "phone": pending.get("phone"),
+            "amount_minor": pending["amount_minor"], "occurred_at": datetime.now(timezone.utc).isoformat(),
+            "due_date": None, "related_record_id": None, "note": pending.get("note"),
+        }
+        workspace.finance_records = [*(workspace.finance_records or []), record]
+        link.pending_action = None
+        link.pending_expires_at = None
+        db.commit()
+        return f"Saved: {_money(record['amount_minor'])} {record['kind'].replace('_', ' ')} — {record['name']}. It’s now in your Saathi account ledger."
+
+    if lowered in {"who owes me", "who owes me?", "who borrowed from me", "how much do people owe me?"}:
+        workspace = db.get(UserWorkspaceData, link.user_id)
+        due = _list_balances(workspace.finance_records if workspace else [], ("money_lent", "money_repaid"), "money_lent")
+        return "No one owes you in your saved ledger." if not due else "People who owe you: " + "; ".join(f"{name} {_money(amount)}" for name, amount in due)
+    if lowered in {"who do i owe", "who do i owe?", "how much do i owe?"}:
+        workspace = db.get(UserWorkspaceData, link.user_id)
+        due = _list_balances(workspace.finance_records if workspace else [], ("money_borrowed", "money_borrowed_repaid"), "money_borrowed")
+        return "You have no recorded amount to repay." if not due else "You owe: " + "; ".join(f"{name} {_money(amount)}" for name, amount in due)
+
+    if link.pending_action:
+        return "Please reply YES to confirm the pending entry or NO to cancel it before adding another."
+    action = _action_from_text(normalized)
+    if action:
+        link.pending_action = action
+        link.pending_expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+        db.commit()
+        verb = {"money_lent": "lent to", "money_borrowed": "borrowed from", "money_borrowed_repaid": "repaid to", "money_repaid": "repaid to you by"}[action["kind"]]
+        return f"Please confirm: {_money(action['amount_minor'])} {verb} {action['name']}. Reply YES to save it to your account ledger, or NO to cancel."
+    return "I didn’t recognize that entry. Try ‘I lent 200 to Ravi’ or /help. I won’t save anything until you confirm."
+
+
+def _complete_link(db: Session, code: str, telegram_user_id: int, chat_id: int | None) -> str:
+    if not re.fullmatch(r"[A-Fa-f0-9]{10}", code):
+        return "That link code doesn’t look right. Create a fresh code in Saathi Settings → Telegram."
+    digest = hashlib.sha256(code.upper().encode()).hexdigest()
+    link = db.scalar(select(TelegramLink).where(TelegramLink.link_code_hash == digest))
+    expires = _utc(link.link_expires_at) if link else None
+    if not link or not expires or expires < datetime.now(timezone.utc):
+        return "That link code has expired or was already used. Create a new code in Saathi Settings → Telegram."
+    existing = db.scalar(select(TelegramLink).where(TelegramLink.telegram_user_id == telegram_user_id))
+    if existing and existing.user_id != link.user_id:
+        return "This Telegram account is already linked to another Saathi account. Unlink it there before switching accounts."
+    existing_chat = db.scalar(select(TelegramLink).where(TelegramLink.telegram_chat_id == chat_id)) if chat_id is not None else None
+    if existing_chat and existing_chat.user_id != link.user_id:
+        return "This Telegram chat is already linked to another Saathi account. Unlink it there before switching accounts."
+    link.telegram_user_id = telegram_user_id
+    link.telegram_chat_id = chat_id
+    link.link_code_hash = None
+    link.link_expires_at = None
+    link.pending_action = None
+    link.pending_expires_at = None
+    db.commit()
+    return "Telegram linked. I can now read and update only your Saathi account ledger. Send a money entry and I’ll ask you to confirm it before saving."
+
+
+def process_telegram_update(update: dict, db: Session) -> tuple[int, str] | None:
+    update_id = update.get("update_id")
+    message = update.get("message") or {}
+    chat = message.get("chat") or {}
+    sender = message.get("from") or {}
+    text = message.get("text")
+    chat_id, telegram_user_id = chat.get("id"), sender.get("id")
+    if not isinstance(update_id, int) or not isinstance(chat_id, int) or not isinstance(telegram_user_id, int) or not isinstance(text, str):
+        return None
+    if db.get(TelegramProcessedUpdate, update_id):
+        return None
+    db.add(TelegramProcessedUpdate(update_id=update_id))
+    if chat.get("type") != "private":
+        db.commit()
+        return chat_id, "For account privacy, please message Saathi in a private chat rather than a group."
+    link = db.scalar(select(TelegramLink).where(TelegramLink.telegram_user_id == telegram_user_id))
+    if link is None:
+        response = _handle_unlinked_message(db, telegram_user_id, chat_id, text)
+    else:
+        response = _handle_text(db, link, telegram_user_id, text)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        return None
+    return chat_id, response
+
+
+def _handle_unlinked_message(db: Session, telegram_user_id: int, chat_id: int, text: str) -> str:
+    if text.strip().lower().startswith("/start"):
+        parts = text.strip().split(maxsplit=1)
+        if len(parts) > 1 and parts[1].lower().startswith("link_"):
+            return _complete_link(db, parts[1][5:], telegram_user_id, chat_id)
+    if text.strip().lower().startswith("/link"):
+        parts = text.strip().split(maxsplit=1)
+        if len(parts) == 2:
+            return _complete_link(db, parts[1].strip(), telegram_user_id, chat_id)
+        return "Use /link followed by the one-time code from Saathi Settings → Telegram."
+    return "Open Saathi website → Settings → Telegram, create a one-time link code, then send /link CODE here. Your records are private to your account."
+
+
+def _send_reply(chat_id: int, text: str) -> None:
+    try:
+        _telegram_call("sendMessage", {"chat_id": chat_id, "text": text[:3900]})
+    except RuntimeError:
+        logger.exception("Telegram response failed to send")
+
+
+def _poll_offset() -> int:
+    with SessionLocal() as db:
+        state = db.get(TelegramPollingState, 1)
+        return state.next_update_id if state else 0
+
+
+def _save_poll_offset(update_id: int) -> None:
+    with SessionLocal() as db:
+        state = db.get(TelegramPollingState, 1)
+        if state is None:
+            state = TelegramPollingState(id=1, next_update_id=update_id + 1)
+            db.add(state)
+        else:
+            state.next_update_id = max(state.next_update_id, update_id + 1)
+        db.commit()
+
+
+def _get_updates(offset: int) -> list[dict]:
+    return _telegram_call("getUpdates", {"offset": offset, "timeout": 25, "allowed_updates": ["message"]}, timeout=35).get("result", [])
+
+
+async def _poll_forever() -> None:
+    if not _token() or settings.telegram_webhook_url:
+        return
+    while True:
+        try:
+            updates = await run_in_threadpool(_get_updates, await run_in_threadpool(_poll_offset))
+            for update in updates:
+                with SessionLocal() as db:
+                    result = await run_in_threadpool(process_telegram_update, update, db)
+                if result:
+                    await run_in_threadpool(_send_reply, *result)
+                if isinstance(update.get("update_id"), int):
+                    await run_in_threadpool(_save_poll_offset, update["update_id"])
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("Telegram polling cycle failed")
+            await asyncio.sleep(5)
+
+
+async def start_telegram_worker() -> asyncio.Task | None:
+    if not _token():
+        return None
+    if settings.telegram_webhook_url:
+        await run_in_threadpool(configure_telegram_webhook)
+        return None
+    return asyncio.create_task(_poll_forever(), name="saathi-telegram-polling")
