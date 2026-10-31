@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: paytm-saathi-api
+    runtime: python
+    plan: free
+    region: singapore
+    branch: web
+    rootDir: backend
+    buildCommand: pip install .
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health/ready
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_ISSUER
+        value: paytm-saathi
+      - key: CORS_ORIGINS
+        value: '["https://ai-business-partner-for-merchants.vercel.app"]'
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_BOT_USERNAME
+        value: SaathiBusinessPartnerBot
+      - key: TELEGRAM_WEBHOOK_URL
+        value: https://paytm-saathi-api.onrender.com/api/v1/integrations/telegram/webhook
+      - key: TELEGRAM_WEBHOOK_SECRET
+        generateValue: true
+      - key: QWEN_API_KEY
+        sync: false
+      - key: QWEN_API_BASE_URL
+        value: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
+      - key: QWEN_MODEL
+        value: qwen-plus
