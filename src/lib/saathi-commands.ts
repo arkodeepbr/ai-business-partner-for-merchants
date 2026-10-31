@@ -6,7 +6,6 @@ export type SaathiPage =
   | "cashflow"
   | "customers"
   | "inventory"
-  | "loans"
   | "reports"
   | "notifications"
   | "support"
@@ -43,7 +42,7 @@ export function interpretSaathiCommand(input: string, locale: Locale): SaathiCom
     return { page: "customers", needsConnectedData: true, answer: hi ? "Customers खोला है। Customer consent और campaign services अभी connected नहीं हैं; मैंने कोई message नहीं भेजा।" : kn ? "ಗ್ರಾಹಕರ ವಿಭಾಗವನ್ನು ತೆರೆದಿದ್ದೇನೆ. ಗ್ರಾಹಕರ ಒಪ್ಪಿಗೆ ಮತ್ತು ಅಭಿಯಾನ ಸೇವೆಗಳು ಸಂಪರ್ಕಗೊಂಡಿಲ್ಲ; ಯಾವುದೇ ಸಂದೇಶ ಕಳುಹಿಸಿಲ್ಲ." : "I opened Customers. Customer consent and campaign services aren’t connected yet; I haven’t sent any messages." };
   }
   if (matches(text, ["loan", "credit", "borrow", "working capital", "लोन", "ऋण", "क्रेडिट", "ಸಾಲ", "ಸಾಲದ ಅರ್ಹತೆ"])) {
-    return { page: "loans", needsConnectedData: true, answer: hi ? "Credit खोला है। कोई authorized lending partner जुड़ा नहीं है, इसलिए मैं offer या eligibility का दावा नहीं कर सकता।" : kn ? "ಸಾಲ ವಿಭಾಗವನ್ನು ತೆರೆದಿದ್ದೇನೆ. ಅಧಿಕೃತ ಸಾಲ ಪಾಲುದಾರ ಸಂಪರ್ಕಗೊಂಡಿಲ್ಲ, ಆದ್ದರಿಂದ ಯಾವುದೇ ಆಫರ್ ಅಥವಾ ಅರ್ಹತೆಯನ್ನು ಹೇಳಲು ಸಾಧ್ಯವಿಲ್ಲ." : "I opened Credit. No authorized lending partner is connected, so I can’t claim an offer or eligibility." };
+    return { page: "inventory", needsConnectedData: false, answer: hi ? "अलग ऋण पेज हटा दिया गया है। Stock & staff के profit planner में आप EMI का अनुमान अपनी दर्ज कमाई से तुलना कर सकते हैं; यह loan approval या offer नहीं है।" : kn ? "ಪ್ರತ್ಯೇಕ ಸಾಲ ಪುಟವನ್ನು ತೆಗೆದುಹಾಕಲಾಗಿದೆ. Stock & staff ಲಾಭ ಯೋಜಕದಲ್ಲಿ ದಾಖಲಿಸಿದ ಆದಾಯದೊಂದಿಗೆ EMI ಅಂದಾಜನ್ನು ಹೋಲಿಸಬಹುದು; ಇದು ಸಾಲ ಮಂಜೂರಾತಿ ಅಥವಾ ಆಫರ್ ಅಲ್ಲ." : "The separate loans page has been removed. In Stock & staff, the profit planner can compare an estimated EMI with your recorded earnings; it does not provide loan approval or offers." };
   }
   if (matches(text, ["gst", "tax", "filing", "invoice", "रिपोर्ट", "जीएसटी", "टैक्स", "ತೆರಿಗೆ", "ವರದಿ", "ಇನ್‌ವಾಯ್ಸ್"])) {
     return { page: "reports", needsConnectedData: true, answer: hi ? "Reports खोला है। GST और tax documents अभी उपलब्ध नहीं हैं; यह tax advice या filing नहीं है।" : kn ? "ವರದಿಗಳನ್ನು ತೆರೆದಿದ್ದೇನೆ. GST ಮತ್ತು ತೆರಿಗೆ ದಾಖಲೆಗಳು ಲಭ್ಯವಿಲ್ಲ; ಇದು ತೆರಿಗೆ ಸಲಹೆ ಅಥವಾ ಸಲ್ಲಿಕೆ ಅಲ್ಲ." : "I opened Reports. GST and tax documents aren’t connected yet; this isn’t tax advice or a filing." };
