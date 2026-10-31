@@ -181,10 +181,10 @@ def _ai_from_text(text: str) -> dict | None:
         return parsed_result if isinstance(parsed_result, dict) else None
 
     parsed = request_interpretation(system)
-    if parsed and parsed.get("intent") == "chat" and isinstance(parsed.get("reply"), str) and not _reply_matches_language(parsed["reply"], language, script):
+    if parsed and parsed.get("intent") in {"chat", "unsupported"} and isinstance(parsed.get("reply"), str) and not _reply_matches_language(parsed["reply"], language, script):
         retry_system = system + f" STRICT LANGUAGE CHECK: your last answer used the wrong language. Return the same required JSON now. The reply must be {language} in {script}. For an English request, do not use Kannada/Hindi words, their scripts, or romanized transliteration."
         parsed = request_interpretation(retry_system)
-        if parsed and parsed.get("intent") == "chat" and isinstance(parsed.get("reply"), str) and not _reply_matches_language(parsed["reply"], language, script):
+        if parsed and parsed.get("intent") in {"chat", "unsupported"} and isinstance(parsed.get("reply"), str) and not _reply_matches_language(parsed["reply"], language, script):
             parsed["reply"] = {
                 "English": "Sorry, I’ll keep this in English. How can I help with your business?",
                 "Hindi": "माफ़ कीजिए, मैं हिंदी में जवाब दूँगा। मैं आपके व्यवसाय में कैसे मदद करूँ?",
