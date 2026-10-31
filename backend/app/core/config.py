@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     ai_api_base_url: str = ""
     ai_api_key: SecretStr = SecretStr("")
     ai_model: str = ""
+    qwen_api_base_url: str = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+    qwen_api_key: SecretStr = SecretStr("")
+    qwen_model: str = "qwen-plus"
     telegram_bot_token: SecretStr = SecretStr("")
     telegram_bot_username: str = ""
     telegram_webhook_url: str = ""
@@ -29,6 +32,14 @@ class Settings(BaseSettings):
     @property
     def assistant_configured(self) -> bool:
         return bool(self.ai_api_base_url.strip() and self.ai_api_key.get_secret_value() and self.ai_model.strip())
+
+    @property
+    def telegram_ai_provider(self) -> tuple[str, str, str] | None:
+        if self.qwen_api_key.get_secret_value().strip():
+            return self.qwen_api_base_url.rstrip("/"), self.qwen_api_key.get_secret_value(), self.qwen_model.strip()
+        if self.assistant_configured:
+            return self.ai_api_base_url.rstrip("/"), self.ai_api_key.get_secret_value(), self.ai_model.strip()
+        return None
 
     @model_validator(mode="after")
     def enforce_production_secrets(self):
@@ -44,6 +55,8 @@ class Settings(BaseSettings):
             raise ValueError("Live mode is disabled until an authorized production provider adapter is verified")
         if self.ai_api_base_url and not self.ai_api_base_url.startswith(("https://", "http://localhost", "http://127.0.0.1")):
             raise ValueError("AI_API_BASE_URL must use HTTPS outside local development")
+        if self.qwen_api_base_url and not self.qwen_api_base_url.startswith(("https://", "http://localhost", "http://127.0.0.1")):
+            raise ValueError("QWEN_API_BASE_URL must use HTTPS outside local development")
         if self.supabase_url and not self.supabase_url.startswith(("https://", "http://localhost", "http://127.0.0.1")):
             raise ValueError("SUPABASE_URL must use HTTPS outside local development")
         if self.telegram_webhook_url and not self.telegram_webhook_url.startswith("https://"):
