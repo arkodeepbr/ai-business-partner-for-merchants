@@ -1,6 +1,6 @@
 from logging.config import fileConfig
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import engine_from_config, pool, text
 from app.core.config import get_settings
 from app.db import Base
 from app import models  # noqa: F401
@@ -21,7 +21,12 @@ def run_migrations_online():
                                      poolclass=pool.NullPool)
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata, compare_type=True)
-        with context.begin_transaction(): context.run_migrations()
+        with context.begin_transaction():
+            # Render can briefly start overlapping instances during deploys. Serialize
+            # PostgreSQL migrations so only one process initializes alembic_version.
+            if connection.dialect.name == "postgresql":
+                connection.execute(text("SELECT pg_advisory_xact_lock(731942681)"))
+            context.run_migrations()
 
 if context.is_offline_mode(): run_migrations_offline()
 else: run_migrations_online()
