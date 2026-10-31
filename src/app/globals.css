@@ -343,6 +343,29 @@ h1,h2,h3,p { margin-top: 0; }
 .profit-breakdown .total { background:#f4faf7; font-weight:700; }
 .profit-breakdown .profit { color:#087c69; background:#e9f7f2; font-size:15px; }
 .profit-breakdown b { white-space:nowrap; }
+.retention-section { display:grid; gap:14px; margin:0 0 20px; padding:16px; border:1px solid #e2ece6; border-radius:15px; background:linear-gradient(150deg,#f5fbf8,#fbfcfa 58%,#f8fbf9); }
+.retention-section .business-heading { margin-bottom:0; }
+.retention-section .business-heading h2 { margin:7px 0; color:#122f2a; font-size:24px; letter-spacing:-.04em; }
+.retention-layout { align-items:start; }
+.retention-card { padding:12px 0; border-top:1px solid #edf2ef; }
+.retention-head,.retention-head>div,.retention-facts,.retention-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+.retention-head { justify-content:space-between; }
+.retention-head strong { color:#183a31; font-size:10px; }
+.retention-head>b { color:#a76220; font-size:9px; }
+.retention-segment { padding:4px 7px; border-radius:20px; color:#17866f; background:#eaf8f2; font-size:7px; font-weight:700; }
+.retention-segment.risk { color:#a74d50; background:#fff0ef; }
+.retention-segment.watch { color:#99661e; background:#fff5e2; }
+.retention-facts { margin:8px 0; color:#7b8982; font-size:8px; }
+.retention-facts span { padding:4px 6px; border-radius:6px; background:#f4f7f4; }
+.retention-offer { margin:6px 0; color:#59685f; font-size:9px; line-height:1.5; }
+.retention-draft { padding:9px 10px; border:1px solid #e7eee9; border-radius:8px; background:#fbfdfb; color:#4d6258; font-size:9px; line-height:1.5; }
+.retention-actions { margin-top:8px; }
+.retention-actions button { display:inline-flex; align-items:center; gap:5px; min-height:29px; padding:0 8px; border:1px solid #dce9e2; border-radius:7px; background:#fff; color:#147f6d; font:inherit; font-size:8px; font-weight:700; cursor:pointer; }
+.retention-actions button:disabled { opacity:.55; cursor:wait; }
+.retention-form { grid-template-columns:1fr; }
+.retention-form label:first-child,.retention-form .business-primary,.retention-form .business-form-notice { grid-column:1; }
+.retention-form .business-primary { width:100%; }
+@media(max-width:760px){.retention-section{padding:12px}.retention-section .business-heading h2{font-size:21px}}
 .report-toolbar { display:flex; flex-wrap:wrap; align-items:end; gap:9px; padding:14px; border:1px solid var(--line); border-radius:12px; background:#fff; }
 .report-toolbar label { display:flex; flex:1 1 155px; flex-direction:column; gap:5px; color:#718078; font-size:9px; }
 .report-toolbar select { height:36px; padding:0 10px; border:1px solid var(--line); border-radius:8px; background:#fff; color:#263b33; font:inherit; font-size:10px; }

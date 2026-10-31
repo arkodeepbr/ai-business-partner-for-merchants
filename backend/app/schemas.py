@@ -62,7 +62,7 @@ class WorkspaceDataUpdate(BaseModel):
 
 class FinanceRecord(BaseModel):
     id: str = Field(min_length=1, max_length=64)
-    kind: Literal["contact_added", "money_lent", "money_repaid", "money_borrowed", "money_borrowed_repaid", "loan_taken", "loan_payment", "transfer_recorded", "inventory_item", "inventory_adjustment", "inventory_sale", "inventory_return", "expense_recorded"]
+    kind: Literal["contact_added", "money_lent", "money_repaid", "money_borrowed", "money_borrowed_repaid", "loan_taken", "loan_payment", "transfer_recorded", "inventory_item", "inventory_adjustment", "inventory_sale", "inventory_return", "expense_recorded", "customer_purchase"]
     name: str = Field(min_length=1, max_length=120)
     phone: str | None = Field(default=None, max_length=30)
     amount_minor: int = Field(ge=0, le=100_000_000_000)
@@ -78,6 +78,7 @@ class FinanceRecord(BaseModel):
     unit_price_minor: int | None = Field(default=None, ge=0, le=100_000_000_000)
     discount_minor: int | None = Field(default=None, ge=0, le=100_000_000_000)
     fees_minor: int | None = Field(default=None, ge=0, le=100_000_000_000)
+    category: str | None = Field(default=None, max_length=80)
 
 
 class FinanceRecordsResponse(BaseModel):

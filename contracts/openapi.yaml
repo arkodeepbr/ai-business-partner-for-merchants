@@ -246,7 +246,7 @@ components:
       required: [id, kind, name, amount_minor, occurred_at]
       properties:
         id: { type: string, minLength: 1, maxLength: 64 }
-        kind: { type: string, enum: [contact_added, money_lent, money_repaid, money_borrowed, money_borrowed_repaid, loan_taken, loan_payment, transfer_recorded, inventory_item, inventory_adjustment, inventory_sale, inventory_return, expense_recorded] }
+        kind: { type: string, enum: [contact_added, money_lent, money_repaid, money_borrowed, money_borrowed_repaid, loan_taken, loan_payment, transfer_recorded, inventory_item, inventory_adjustment, inventory_sale, inventory_return, expense_recorded, customer_purchase] }
         name: { type: string, minLength: 1, maxLength: 120 }
         phone: { type: [string, 'null'], maxLength: 30 }
         amount_minor: { type: integer, minimum: 0, maximum: 100000000000 }
@@ -262,6 +262,7 @@ components:
         unit_price_minor: { type: [integer, 'null'], minimum: 0, maximum: 100000000000 }
         discount_minor: { type: [integer, 'null'], minimum: 0, maximum: 100000000000 }
         fees_minor: { type: [integer, 'null'], minimum: 0, maximum: 100000000000 }
+        category: { type: [string, 'null'], maxLength: 80 }
     FinanceRecords:
       type: object
       required: [records]

@@ -1,4 +1,4 @@
-import type { Transaction } from "@/lib/api";
+import type { FinanceRecord, Transaction } from "@/lib/api";
 
 export const DEMO_RANGE = "24–30 Oct 2026";
 
@@ -61,6 +61,25 @@ export const DEMO_PROFIT_SUMMARY = DEMO_PROFIT_DAILY.reduce((totals, day) => ({
   expensesMinor: totals.expensesMinor + day.expensesMinor,
   netProfitMinor: totals.netProfitMinor + day.profitMinor,
 }), { grossSalesMinor: 0, discountsMinor: 0, refundsMinor: 0, netSalesMinor: 0, cogsMinor: 0, returnedCogsMinor: 0, netCogsMinor: 0, feesMinor: 0, expensesMinor: 0, netProfitMinor: 0 });
+
+// Anonymous customer purchase events illustrate retention analytics; never treated as real or saved.
+export const DEMO_CUSTOMER_PURCHASES: FinanceRecord[] = [
+  { id: "demo-c104-1", kind: "customer_purchase", name: "Customer C-104", phone: null, amount_minor: 18500, occurred_at: "2026-10-03T10:00:00+05:30", category: "Snacks", quantity: 1 },
+  { id: "demo-c104-2", kind: "customer_purchase", name: "Customer C-104", phone: null, amount_minor: 21000, occurred_at: "2026-10-10T10:00:00+05:30", category: "Snacks", quantity: 1 },
+  { id: "demo-c104-3", kind: "customer_purchase", name: "Customer C-104", phone: null, amount_minor: 19500, occurred_at: "2026-10-17T10:00:00+05:30", category: "Snacks", quantity: 1 },
+  { id: "demo-c211-1", kind: "customer_purchase", name: "Customer C-211", phone: null, amount_minor: 42000, occurred_at: "2026-10-10T12:00:00+05:30", category: "Tea & coffee", quantity: 2 },
+  { id: "demo-c211-2", kind: "customer_purchase", name: "Customer C-211", phone: null, amount_minor: 39000, occurred_at: "2026-10-17T12:00:00+05:30", category: "Tea & coffee", quantity: 2 },
+  { id: "demo-c211-3", kind: "customer_purchase", name: "Customer C-211", phone: null, amount_minor: 45000, occurred_at: "2026-10-24T12:00:00+05:30", category: "Tea & coffee", quantity: 2 },
+  { id: "demo-c312-1", kind: "customer_purchase", name: "Customer C-312", phone: null, amount_minor: 125000, occurred_at: "2026-10-01T15:00:00+05:30", category: "Household staples", quantity: 5 },
+  { id: "demo-c408-1", kind: "customer_purchase", name: "Customer C-408", phone: null, amount_minor: 26000, occurred_at: "2026-10-02T16:00:00+05:30", category: "Snacks", quantity: 2 },
+  { id: "demo-c408-2", kind: "customer_purchase", name: "Customer C-408", phone: null, amount_minor: 24000, occurred_at: "2026-10-09T16:00:00+05:30", category: "Snacks", quantity: 2 },
+  { id: "demo-c408-3", kind: "customer_purchase", name: "Customer C-408", phone: null, amount_minor: 28000, occurred_at: "2026-10-16T16:00:00+05:30", category: "Snacks", quantity: 2 },
+  { id: "demo-c408-4", kind: "customer_purchase", name: "Customer C-408", phone: null, amount_minor: 25000, occurred_at: "2026-10-23T16:00:00+05:30", category: "Snacks", quantity: 2 },
+  { id: "demo-c509-1", kind: "customer_purchase", name: "Customer C-509", phone: null, amount_minor: 68000, occurred_at: "2026-10-05T11:00:00+05:30", category: "Beverages", quantity: 3 },
+  { id: "demo-c509-2", kind: "customer_purchase", name: "Customer C-509", phone: null, amount_minor: 72000, occurred_at: "2026-10-20T11:00:00+05:30", category: "Beverages", quantity: 3 },
+  { id: "demo-c620-1", kind: "customer_purchase", name: "Customer C-620", phone: null, amount_minor: 15000, occurred_at: "2026-10-01T09:00:00+05:30", category: "Snacks", quantity: 1 },
+  { id: "demo-c620-2", kind: "customer_purchase", name: "Customer C-620", phone: null, amount_minor: 16000, occurred_at: "2026-10-05T09:00:00+05:30", category: "Snacks", quantity: 1 },
+];
 
 export const DEMO_PENDING_SETTLEMENT = { amountMinor: 864000, payoutCount: 2, expected: "31 Oct" };
 
