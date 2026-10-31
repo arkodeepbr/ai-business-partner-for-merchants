@@ -28,9 +28,18 @@ export function SalesInsightsPage({ demo, transactions, onViewProfit }: { demo: 
 
 export function HistoricalSalesChart({ transactions }: { transactions: Transaction[] }) {
   const daily = new Map<string, number>();
+  const dateParts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
   for (const transaction of transactions) {
     if (transaction.status !== "succeeded") continue;
-    const date = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(transaction.occurred_at));
+    // Don't rely on locale-specific formatted output (e.g. en-CA may serialize
+    // differently in Node and Chromium); assemble the ISO date from stable parts.
+    const parts = Object.fromEntries(dateParts.formatToParts(new Date(transaction.occurred_at)).map(({ type, value }) => [type, value]));
+    const date = `${parts.year}-${parts.month}-${parts.day}`;
     daily.set(date, (daily.get(date) ?? 0) + transaction.amount_minor);
   }
   const entries = [...daily.entries()].sort(([a], [b]) => a.localeCompare(b));
@@ -49,7 +58,7 @@ export function HistoricalSalesChart({ transactions }: { transactions: Transacti
     {[0, .5, 1].map((fraction) => { const y = top + usableHeight * fraction; return <g key={fraction}><line x1={left} x2={width-right} y1={y} y2={y} className="history-gridline"/><text x={left-8} y={y+3} textAnchor="end" className="history-axis-label">{cash(max - (max-min)*fraction)}</text></g>; })}
     <polygon points={area} fill="url(#historyFill)"/><polyline points={line} fill="none" className="history-line"/>
     {points.map((point) => <circle key={point.date} cx={point.x} cy={point.y} r="4" className="history-point"><title>{point.date}: {cash(point.value)}</title></circle>)}
-    {labels.map((point) => <text key={point.date} x={point.x} y={height-9} textAnchor="middle" className="history-axis-label">{new Date(`${point.date}T00:00:00+05:30`).toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "Asia/Kolkata" })}</text>)}
+    {labels.map((point) => { const [, month, day] = point.date.split("-"); const monthLabel = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][Number(month) - 1]; return <text key={point.date} x={point.x} y={height-9} textAnchor="middle" className="history-axis-label">{Number(day)} {monthLabel}</text>; })}
   </svg><div className="history-chart-caption"><span><i/> Successful collections by day</span><strong>{cash(values.reduce((sum, value) => sum + value, 0))} total</strong></div></div>;
 }
 
