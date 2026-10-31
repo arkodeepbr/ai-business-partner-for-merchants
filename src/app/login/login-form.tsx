@@ -16,8 +16,8 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState(search.get("error") ? "Sign-in could not be completed. Please try again." : "");
-  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [error, setError] = useState(search.get("error") === "recovery_failed" ? "That password reset link is invalid or expired. Request a fresh link and open it in the same browser." : search.get("error") ? "Sign-in could not be completed. Please try again." : "");
   const report = (message: string) => { setError(message); setNotice(""); };
   const success = (message: string) => { setNotice(message); setError(""); };
   const passwordRecoveryRedirect = () => `${location.origin}/auth/callback?next=${encodeURIComponent("/login?mode=update-password")}`;
@@ -62,8 +62,8 @@ export default function LoginForm() {
 
   return <main className="auth-page"><div className="auth-glow auth-glow-one"/><div className="auth-glow auth-glow-two"/>
     <div className="auth-layout"><section className="auth-story"><div className="auth-brand"><span className="brand-mark"><i/><i/><i/></span><span className="brand-name">paytm<span>.</span><small>SAATHI</small></span></div>
-      <div className="auth-kicker"><Sparkles size={14}/> YOUR AI BUSINESS PARTNER</div><h2>One calmer place to run your business.</h2><p className="auth-story-copy">Saathi helps you understand daily sales, keep your money records in order, and make practical next-step plans.</p>
-      <div className="auth-feature-list"><article><span>01</span><div><strong>Sales that make sense</strong><p>See historical activity, track costs and discounts, and understand estimated profit.</p></div></article><article><span>02</span><div><strong>Customers who come back</strong><p>Review repeat purchases, spot customers who may be slipping away, and draft offers.</p></div></article><article><span>03</span><div><strong>Your own money ledger</strong><p>Track money lent, repayments, contacts, products, and business expenses in your account.</p></div></article><article><span>04</span><div><strong>Ask Saathi naturally</strong><p>Type or speak in English, Hindi, or Kannada. Answers use your saved records when relevant.</p></div></article></div>
+      <div className="auth-ai-hero"><div className="auth-ai-orb"><Sparkles size={32}/><i/><i/><i/></div><div className="auth-kicker"><Sparkles size={14}/> THE HEART OF PAYTM SAATHI</div><h2>Your AI business partner, ready to listen.</h2><p className="auth-story-copy">Talk or type naturally in English, Hindi, or Kannada. Saathi helps make sense of your saved sales, customers, money ledger, inventory, and profit plan, then gives you clear next steps.</p><div className="auth-ai-tags"><span>Voice + chat</span><span>English · हिन्दी · ಕನ್ನಡ</span><span>Grounded in your saved records</span></div></div>
+      <div className="auth-feature-list"><article><span>01</span><div><strong>Understand sales and profit</strong><p>Review payment history, costs, discounts, and estimated margins.</p></div></article><article><span>02</span><div><strong>Keep customers engaged</strong><p>Spot repeat-purchase changes and prepare relevant offers.</p></div></article><article><span>03</span><div><strong>Track business records</strong><p>Save money lent, repayments, products, stock, and expenses.</p></div></article></div>
       <p className="auth-story-note"><ShieldCheck size={14}/> Your saved records are private to your signed-in account. Demo figures are clearly labeled.</p>
     </section><section className="auth-card"><div className="auth-brand auth-brand-mobile"><span className="brand-mark"><i/><i/><i/></span><span className="brand-name">paytm<span>.</span><small>SAATHI</small></span></div>
       <div className="auth-kicker"><Sparkles size={14}/> MERCHANT GROWTH PARTNER</div><h1>{title}</h1><p className="auth-caption">{caption}</p>
