@@ -22,9 +22,10 @@ export function SettingsPage({ accountName, email, theme, onThemeChange, records
   const [savedTheme, setSavedTheme] = useState(false);
   const [telegramCode, setTelegramCode] = useState<Awaited<ReturnType<typeof api.createTelegramLinkCode>> | null>(null);
   const queryClient = useQueryClient();
-  const telegramStatus = useQuery({ queryKey: ["telegram-status"], queryFn: api.telegramStatus, enabled: accountEnabled, refetchInterval: telegramCode ? 3000 : false });
+  const telegramStatus = useQuery({ queryKey: ["telegram-status"], queryFn: api.telegramStatus, enabled: accountEnabled, refetchInterval: (query) => telegramCode && !query.state.data?.linked ? 3000 : false });
   const createTelegramCode = useMutation({ mutationFn: api.createTelegramLinkCode, onSuccess: setTelegramCode });
   const unlinkTelegram = useMutation({ mutationFn: api.unlinkTelegram, onSuccess: async () => { setTelegramCode(null); await queryClient.invalidateQueries({ queryKey: ["telegram-status"] }); } });
+  const botUrl = `https://t.me/${telegramStatus.data?.bot_username || "SaathiBusinessPartnerBot"}`;
   function chooseTheme(value: Appearance) {
     onThemeChange(value);
     setSavedTheme(true);
@@ -63,7 +64,7 @@ export function SettingsPage({ accountName, email, theme, onThemeChange, records
         </> : telegramStatus.data.linked ? <>
           <div className="provider-state connected"><i/>Telegram is linked to this account</div>
           <p className="settings-copy">In the private chat, try “I lent 200 to Ravi” or ask “who owes me?”. Saathi asks you to confirm each entry before saving it to this account’s ledger.</p>
-          <button className="settings-secondary" type="button" onClick={() => { if (window.confirm("Unlink Telegram from this Saathi account? Your saved ledger entries will remain.")) unlinkTelegram.mutate(); }} disabled={unlinkTelegram.isPending}>Unlink Telegram</button>
+          <div className="settings-actions"><a className="settings-secondary" href={botUrl} target="_blank" rel="noreferrer">Open Saathi on Telegram <ExternalLink size={14}/></a><button className="settings-secondary" type="button" onClick={() => { if (window.confirm("Unlink Telegram from this Saathi account? Your saved ledger entries will remain.")) unlinkTelegram.mutate(); }} disabled={unlinkTelegram.isPending}>Unlink Telegram</button></div>
         </> : <>
           <div className="provider-state pending"><i/>Telegram bot is ready to link</div>
           <p className="settings-copy">Create a short-lived one-time code, then open the bot and link this signed-in account. The code expires after 10 minutes.</p>
@@ -71,6 +72,12 @@ export function SettingsPage({ accountName, email, theme, onThemeChange, records
           {(createTelegramCode.error || unlinkTelegram.error) && <p className="settings-error" role="alert">{(createTelegramCode.error || unlinkTelegram.error)?.message}</p>}
           {telegramCode && telegramStatus.data?.linked && <p className="settings-inline-status" role="status">Telegram linked successfully to this account.</p>}
         </>}
+      </article>
+
+      <article className="panel settings-card">
+        <header><span className="settings-icon"><Download size={18}/></span><div><h2>Saathi apps</h2><p>Open the assistant in Telegram or install the Android app</p></div></header>
+        <div className="settings-actions"><a className="settings-secondary" href={botUrl} target="_blank" rel="noreferrer"><Send size={15}/> Open Telegram bot <ExternalLink size={14}/></a><a className="settings-secondary" href="/downloads/business-partner-hosted.apk" download="Paytm-Saathi.apk"><Download size={15}/> Download Android app</a></div>
+        <small className="settings-note">The Telegram bot can update your linked account ledger. Android app installation depends on your device settings.</small>
       </article>
 
       <article className="panel settings-card settings-production">

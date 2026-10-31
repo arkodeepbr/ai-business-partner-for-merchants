@@ -94,6 +94,44 @@ def _action_from_text(text: str) -> dict | None:
     return None
 
 
+def _reply_language(text: str) -> tuple[str, str]:
+    """Choose reply language and script from this message, with English as the Latin default."""
+    value = text.strip().casefold()
+    if re.search(r"[\u0c80-\u0cff]", value):
+        return "Kannada", "Kannada script"
+    if re.search(r"[\u0900-\u097f]", value):
+        return "Hindi", "Devanagari script"
+    if re.search(r"\b(?:talk|speak|reply|answer|continue|use|write)\s+(?:to\s+me\s+)?(?:in\s+)?english\b", value):
+        return "English", "Latin script"
+    if re.search(r"\b(?:talk|speak|reply|answer|continue|use|write)\s+(?:to\s+me\s+)?(?:in\s+)?kannada\b", value):
+        return "Kannada", "Latin transliteration"
+    if re.search(r"\b(?:talk|speak|reply|answer|continue|use|write)\s+(?:to\s+me\s+)?(?:in\s+)?hindi\b", value):
+        return "Hindi", "Latin transliteration"
+    words = set(re.findall(r"[a-z]+", value))
+    hindi_words = {"kaise", "kaisa", "kaisi", "hai", "hain", "hoon", "hu", "kya", "kyun", "kyu", "mujhe", "mera", "meri", "aap", "tum", "batao", "karna", "chahiye", "nahi", "nahin", "haan", "namaste", "kitna", "kitni"}
+    kannada_words = {"nanna", "nanage", "nimma", "nimge", "hege", "enu", "yenu", "yaake", "beku", "illa", "maadi", "helri", "idu", "adu", "sari", "hogi", "kodri"}
+    if len(words & kannada_words) >= 2:
+        return "Kannada", "Latin transliteration"
+    if len(words & hindi_words) >= 2:
+        return "Hindi", "Latin transliteration"
+    return "English", "Latin script"
+
+
+def _reply_matches_language(reply: str, language: str, script: str) -> bool:
+    has_devanagari = bool(re.search(r"[\u0900-\u097f]", reply))
+    has_kannada = bool(re.search(r"[\u0c80-\u0cff]", reply))
+    words = set(re.findall(r"[a-z]+", reply.casefold()))
+    transliterated_kannada = {"nanna", "nanage", "nimma", "nimge", "hege", "enu", "yenu", "yaake", "beku", "illa", "maadi", "helri", "idu", "adu", "matadthini", "mataduttene"}
+    transliterated_hindi = {"kaise", "kaisa", "kaisi", "hai", "hain", "hoon", "hu", "kya", "kyun", "kyu", "mujhe", "mera", "meri", "aap", "tum", "batao", "karna", "chahiye", "nahi", "nahin", "haan", "namaste", "kitna", "kitni"}
+    if language == "English":
+        # The model sometimes transliterates Kannada/Hindi into Latin characters,
+        # so script checks alone do not prevent an unexpected language switch.
+        return not has_devanagari and not has_kannada and len(words & transliterated_kannada) < 2 and len(words & transliterated_hindi) < 2
+    if language == "Hindi":
+        return has_devanagari if script == "Devanagari script" else not has_devanagari and not has_kannada
+    return has_kannada if script == "Kannada script" else not has_devanagari and not has_kannada
+
+
 def _ai_from_text(text: str) -> dict | None:
     """Interpret a Telegram message with an OpenAI-compatible model; never write here."""
     provider = settings.telegram_ai_provider
@@ -101,8 +139,13 @@ def _ai_from_text(text: str) -> dict | None:
         return None
     base_url, api_key, model = provider
     endpoint = base_url if base_url.endswith("/chat/completions") else f"{base_url}/chat/completions"
+    language, script = _reply_language(text)
     system = (
         "You are Saathi, a friendly assistant for a merchant's private Telegram chat. "
+        f"The latest user message is in {language}; reply in {language} using {script}. "
+        "The language detected from this single, latest message is the final authority. Never carry a language preference over from an older message. "
+        "For English, write ordinary natural English only; do not answer in Kannada or Hindi, including romanized/transliterated Kannada or Hindi. "
+        "For Kannada or Hindi, follow the detected language and requested script. "
         "Understand English, Hindi, Kannada, transliteration, and mixed-language messages. "
         "Return exactly one JSON object, no markdown, with keys intent, kind, name, amount, query, reply. "
         "intent is ledger_action, ledger_query, chat, or unsupported. For actions, kind is money_lent, "
@@ -119,18 +162,35 @@ def _ai_from_text(text: str) -> dict | None:
         {"role": "system", "content": system},
         {"role": "user", "content": json.dumps({"message": text[:2000]}, ensure_ascii=False)},
     ]}
-    request = Request(endpoint, data=json.dumps(payload, ensure_ascii=False).encode("utf-8"), headers={
-        "Authorization": f"Bearer {api_key}", "Content-Type": "application/json",
-    }, method="POST")
-    try:
-        with urlopen(request, timeout=12) as response:
-            result = json.loads(response.read().decode("utf-8"))
-        content = result["choices"][0]["message"]["content"]
-        if not isinstance(content, str):
+    def request_interpretation(system_message: str) -> dict | None:
+        payload["messages"][0]["content"] = system_message
+        request = Request(endpoint, data=json.dumps(payload, ensure_ascii=False).encode("utf-8"), headers={
+            "Authorization": f"Bearer {api_key}", "Content-Type": "application/json",
+        }, method="POST")
+        try:
+            with urlopen(request, timeout=12) as response:
+                result = json.loads(response.read().decode("utf-8"))
+            content = result["choices"][0]["message"]["content"]
+            if not isinstance(content, str):
+                return None
+            content = re.sub(r"^```(?:json)?\s*|\s*```$", "", content.strip(), flags=re.I)
+            parsed_result = json.loads(content)
+        except (HTTPError, URLError, TimeoutError, json.JSONDecodeError, KeyError, IndexError, TypeError):
+            logger.warning("Telegram assistant interpretation failed")
             return None
-        parsed = json.loads(content.strip())
-    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError, KeyError, IndexError, TypeError):
-        logger.warning("Telegram assistant interpretation failed")
+        return parsed_result if isinstance(parsed_result, dict) else None
+
+    parsed = request_interpretation(system)
+    if parsed and parsed.get("intent") == "chat" and isinstance(parsed.get("reply"), str) and not _reply_matches_language(parsed["reply"], language, script):
+        retry_system = system + f" STRICT LANGUAGE CHECK: your last answer used the wrong language. Return the same required JSON now. The reply must be {language} in {script}. For an English request, do not use Kannada/Hindi words, their scripts, or romanized transliteration."
+        parsed = request_interpretation(retry_system)
+        if parsed and parsed.get("intent") == "chat" and isinstance(parsed.get("reply"), str) and not _reply_matches_language(parsed["reply"], language, script):
+            parsed["reply"] = {
+                "English": "Sorry, I’ll keep this in English. How can I help with your business?",
+                "Hindi": "माफ़ कीजिए, मैं हिंदी में जवाब दूँगा। मैं आपके व्यवसाय में कैसे मदद करूँ?",
+                "Kannada": "ಕ್ಷಮಿಸಿ, ನಾನು ಕನ್ನಡದಲ್ಲಿ ಉತ್ತರಿಸುತ್ತೇನೆ. ನಿಮ್ಮ ವ್ಯವಹಾರಕ್ಕೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಲಿ?",
+            }[language]
+    if parsed and parsed.get("intent") == "chat" and not isinstance(parsed.get("reply"), str):
         return None
     if not isinstance(parsed, dict) or parsed.get("intent") not in {"ledger_action", "ledger_query", "chat", "unsupported"}:
         return None

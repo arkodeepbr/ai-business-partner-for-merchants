@@ -117,7 +117,7 @@ export function answerDemoQuestion(question: string): string {
   }
 
   if (/\b(stock|inventory|staff|customer|customers|loan|credit|gst|tax|campaign|marketing)\b/.test(query)) {
-    return `This demo has sample payment, transaction, stock and profit figures for ${DEMO_RANGE}. Three example products are shown in the Profit planner; these are illustrative and are not saved as your real inventory.`;
+    return `This demo has sample payment, transaction and profit figures for ${DEMO_RANGE}. Three example products with costs and prices are shown in the Profit planner; these are illustrative only.`;
   }
   if (/settle|payout|cash flow|cashflow/.test(query)) {
     return `Demo cash flow: ${rupees(DEMO_PENDING_SETTLEMENT.amountMinor)} across ${DEMO_PENDING_SETTLEMENT.payoutCount} pending payouts, expected ${DEMO_PENDING_SETTLEMENT.expected}.` + disclaimer;

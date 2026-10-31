@@ -60,9 +60,9 @@ export function interpretSaathiCommand(input: string, locale: Locale): SaathiCom
   return {
     page: "assistant",
     answer: hi
-      ? "मैं typed और voice commands से app के sections खोल सकता हूँ। Sales, settlements, credit, stock, customers और tax के live काम के लिए authorized Paytm data और संबंधित service APIs जोड़नी होंगी।"
+      ? "मैं typed और voice commands से app के sections खोल सकता हूँ। Sales, settlements, credit, profit planning, customers और tax के live काम के लिए authorized Paytm data और संबंधित service APIs जोड़नी होंगी।"
       : kn
-        ? "ನಾನು ಧ್ವನಿ ಅಥವಾ ಪಠ್ಯದಿಂದ ವ್ಯಾಪಾರ ವಿಭಾಗಗಳನ್ನು ತೆರೆಯಬಹುದು. ಮಾರಾಟ, ಸೆಟ್ಲ್‌ಮೆಂಟ್, ಸಾಲ, ಸ್ಟಾಕ್, ಗ್ರಾಹಕರು ಮತ್ತು ತೆರಿಗೆಗೆ ನೈಜ ಕೆಲಸ ಮಾಡಲು ಅಧಿಕೃತ Paytm ಡೇಟಾ ಮತ್ತು ಸಂಬಂಧಿತ ಸೇವೆಗಳು ಬೇಕು."
-        : "I can open product areas with typed or voice commands. Live work for sales, settlements, credit, stock, customers and tax needs authorized Paytm data and the matching service APIs.",
+        ? "ನಾನು ಧ್ವನಿ ಅಥವಾ ಪಠ್ಯದಿಂದ ವ್ಯಾಪಾರ ವಿಭಾಗಗಳನ್ನು ತೆರೆಯಬಹುದು. ಮಾರಾಟ, ಸೆಟ್ಲ್‌ಮೆಂಟ್, ಸಾಲ, ಲಾಭ ಯೋಜನೆ, ಗ್ರಾಹಕರು ಮತ್ತು ತೆರಿಗೆಗೆ ನೈಜ ಕೆಲಸ ಮಾಡಲು ಅಧಿಕೃತ Paytm ಡೇಟಾ ಮತ್ತು ಸಂಬಂಧಿತ ಸೇವೆಗಳು ಬೇಕು."
+        : "I can open product areas with typed or voice commands. Live work for sales, settlements, credit, profit, customers and tax needs authorized Paytm data and the matching service APIs.",
   };
 }
