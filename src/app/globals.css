@@ -280,6 +280,8 @@ h1,h2,h3,p { margin-top: 0; }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
 
 .business-page { display:flex; flex-direction:column; gap:16px; padding:8px 0 24px; }
+.business-search-input { max-width:190px; min-width:130px; padding:7px 9px; border:1px solid var(--line); border-radius:8px; font:inherit; font-size:9px; }
+.ledger-subhead { margin:22px 0 4px; padding-top:15px; border-top:1px solid var(--line); font-size:11px; }
 .business-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; margin-bottom:2px; }
 .business-heading .eyebrow { display:flex; align-items:center; gap:7px; color:#0c9c86; font-size:9px; font-weight:800; letter-spacing:1.4px; }
 .business-heading .eyebrow svg { width:15px; height:15px; }

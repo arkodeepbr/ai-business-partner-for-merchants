@@ -522,7 +522,7 @@ export interface components {
         FinanceRecord: {
             id: string;
             /** @enum {string} */
-            kind: "money_lent" | "money_repaid" | "loan_taken" | "loan_payment" | "transfer_recorded";
+            kind: "contact_added" | "money_lent" | "money_repaid" | "money_borrowed" | "money_borrowed_repaid" | "loan_taken" | "loan_payment" | "transfer_recorded";
             name: string;
             phone?: string | null;
             amount_minor: number;

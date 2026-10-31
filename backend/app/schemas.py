@@ -62,10 +62,10 @@ class WorkspaceDataUpdate(BaseModel):
 
 class FinanceRecord(BaseModel):
     id: str = Field(min_length=1, max_length=64)
-    kind: Literal["money_lent", "money_repaid", "loan_taken", "loan_payment", "transfer_recorded"]
+    kind: Literal["contact_added", "money_lent", "money_repaid", "money_borrowed", "money_borrowed_repaid", "loan_taken", "loan_payment", "transfer_recorded"]
     name: str = Field(min_length=1, max_length=120)
     phone: str | None = Field(default=None, max_length=30)
-    amount_minor: int = Field(gt=0, le=100_000_000_000)
+    amount_minor: int = Field(ge=0, le=100_000_000_000)
     occurred_at: datetime
     due_date: date | None = None
     related_record_id: str | None = Field(default=None, max_length=64)
