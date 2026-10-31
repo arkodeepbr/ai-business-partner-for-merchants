@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>Paytm AI Business Partner - Home Dashboard</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "secondary-container": "#2bc6ff",
+          "on-tertiary-fixed": "#001f28",
+          "on-tertiary-container": "#00a6cb",
+          "tertiary-container": "#003644",
+          "surface-container-high": "#e3e7fc",
+          "error": "#ba1a1a",
+          "tertiary-fixed": "#b6ebff",
+          "on-tertiary": "#ffffff",
+          "on-secondary-container": "#004f69",
+          "on-primary-fixed": "#001943",
+          "tertiary-fixed-dim": "#47d6ff",
+          "surface-container-low": "#f2f3ff",
+          "secondary-fixed": "#c0e8ff",
+          "outline-variant": "#e2e5eb",
+          "on-surface-variant": "#636978",
+          "outline": "#8e919a",
+          "surface-variant": "#dee2f6",
+          "inverse-primary": "#afc6ff",
+          "on-surface": "#0f172a",
+          "secondary": "#006686",
+          "tertiary": "#001f29",
+          "surface-container-lowest": "#ffffff",
+          "on-background": "#0f172a",
+          "surface-bright": "#faf8ff",
+          "surface-tint": "#0056b3",
+          "surface-container-highest": "#dee2f6",
+          "primary-fixed": "#d9e2ff",
+          "primary": "#001a45",
+          "surface": "#f4f6fa",
+          "on-primary-container": "#7998de",
+          "error-container": "#ffdad6",
+          "surface-container": "#eaedff",
+          "background": "#f4f6fa",
+          "on-primary": "#ffffff",
+          "primary-container": "#002e6e",
+          "paytm-cyan": "#00b9f5",
+          "paytm-navy": "#002970"
+        },
+        "fontFamily": {
+          "sans": ["-apple-system", "BlinkMacSystemFont", "Inter", "Plus Jakarta Sans", "sans-serif"],
+          "headline-lg": ["Inter", "-apple-system", "sans-serif"],
+          "headline-md": ["Inter", "-apple-system", "sans-serif"],
+          "headline-xl": ["Inter", "-apple-system", "sans-serif"],
+          "display-hero": ["Inter", "-apple-system", "sans-serif"]
+        },
+        "boxShadow": {
+          "ios-card": "0 8px 30px rgba(0, 26, 69, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04)",
+          "ios-glow": "0 0 45px -8px rgba(0, 185, 245, 0.45)",
+          "ios-tab": "0 -4px 20px rgba(0, 0, 0, 0.04)",
+          "wallet-float": "0 14px 34px -10px rgba(0, 41, 112, 0.38), 0 2px 8px rgba(0, 0, 0, 0.06)"
+        }
+      },
+    },
+  }
+</script>
+<style>
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    line-height: 1;
+    display: inline-block;
+    vertical-align: middle;
+  }
+  @keyframes siriPulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.7;
+    }
+    50% {
+      transform: scale(1.12);
+      opacity: 0.35;
+    }
+  }
+  @keyframes siriOuterWave {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 0.45;
+    }
+    50% {
+      transform: scale(1.24);
+      opacity: 0.15;
+    }
+  }
+  .siri-ring-1 {
+    animation: siriPulse 3.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  .siri-ring-2 {
+    animation: siriOuterWave 3.2s cubic-bezier(0.4, 0, 0.6, 1) infinite 0.9s;
+  }
+  body {
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .ios-glass {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(24px) saturate(190%);
+    -webkit-backdrop-filter: blur(24px) saturate(190%);
+  }
+  .ios-frosted-button {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+</style>
+</head>
+<body class="bg-[#f2f4f8] text-on-surface antialiased min-h-screen select-none relative">
+<!-- Ambient iOS Mesh Background Gradient Layer -->
+<div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+<div class="absolute -top-36 -left-20 w-80 h-80 rounded-full bg-cyan-200/25 blur-3xl"></div>
+<div class="absolute top-80 -right-24 w-80 h-80 rounded-full bg-blue-200/20 blur-3xl"></div>
+<div class="absolute bottom-40 left-10 w-72 h-72 rounded-full bg-sky-100/35 blur-3xl"></div>
+</div>
+<!-- Mobile iOS Shell Container -->
+<div class="max-w-md mx-auto min-h-screen flex flex-col relative z-10 pb-28">
+<!-- Native iOS Status Bar -->
+<header class="w-full ios-glass sticky top-0 z-40 px-6 pt-3 pb-2 flex justify-between items-center border-b border-black/[0.04]">
+<div class="flex items-center gap-1">
+<span class="font-semibold text-[15px] tracking-tight text-slate-900">9:41</span>
+</div>
+<!-- Dynamic Island / Top notch subtle indicator -->
+<div class="w-24 h-5 bg-black/90 rounded-full flex items-center justify-center">
+<div class="w-2.5 h-2.5 rounded-full bg-cyan-400/80 mr-2 animate-pulse"></div>
+<span class="text-[9px] font-bold text-white tracking-wide">PAYTM AI</span>
+</div>
+<div class="flex items-center gap-2 text-slate-900">
+<span class="material-symbols-outlined text-[17px]">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[17px]">wifi</span>
+<!-- iOS Battery Icon with interior pill -->
+<div class="w-6 h-[11px] border border-slate-900 rounded-[3px] p-[1px] flex items-center relative">
+<div class="h-full w-4 bg-slate-900 rounded-[1.5px]"></div>
+<div class="w-[2px] h-[4px] bg-slate-900 absolute -right-[3px] top-[2.5px] rounded-r-sm"></div>
+</div>
+</div>
+</header>
+<!-- iOS Frosted Navigation / Merchant Profile Header -->
+<section class="ios-glass px-5 py-3 border-b border-black/[0.04] flex justify-between items-center">
+<div class="flex items-center gap-3">
+<!-- Merchant Avatar with Subtle Badge -->
+<div class="relative">
+<div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-600 via-paytm-cyan to-blue-500 p-[1.5px] shadow-sm">
+<div class="w-full h-full bg-white rounded-[14px] flex items-center justify-center text-primary font-bold">
+<span class="material-symbols-outlined text-[24px] text-paytm-navy">storefront</span>
+</div>
+</div>
+<div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-sky-500 flex items-center justify-center text-white ring-2 ring-white">
+<span class="material-symbols-outlined text-[10px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="text-[12px] font-medium text-slate-500">Good Morning!</span>
+<span class="inline-flex items-center text-sky-600">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+</span>
+</div>
+<h1 class="text-[17px] font-bold text-slate-900 leading-tight tracking-tight">Ramesh Sharma</h1>
+<p class="text-[12px] text-slate-500 font-medium">Sharma General Store</p>
+</div>
+</div>
+<!-- Right Header Controls: Soundbox Capsule Pill & iOS Frosted Button -->
+<div class="flex items-center gap-2">
+<!-- Soundbox Active Capsule Pill -->
+<div class="flex items-center gap-1.5 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/25 shadow-xs">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="text-[11px] font-semibold text-emerald-700 tracking-tight">Soundbox Active</span>
+</div>
+<!-- Notification iOS Glass Button -->
+<button class="w-9 h-9 rounded-full bg-white/90 border border-slate-200/80 shadow-xs flex items-center justify-center text-slate-700 active:scale-95 active:bg-slate-100 transition-all">
+<span class="material-symbols-outlined text-[19px]">notifications</span>
+</button>
+</div>
+</section>
+<!-- Main Content Scroll Area -->
+<main class="px-4 pt-4 space-y-5 flex-1">
+<!-- Apple Wallet Style Card: Money Received Card -->
+<section class="rounded-3xl p-5 shadow-wallet-float relative overflow-hidden bg-gradient-to-br from-[#001740] via-[#002b75] to-[#01419e] text-white border border-white/20">
+<!-- Specular Highlight Sheen Overlay -->
+<div class="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-cyan-400/20 blur-2xl pointer-events-none"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/10 pointer-events-none"></div>
+<!-- Top Row in Card -->
+<div class="relative z-10 flex justify-between items-start">
+<div>
+<div class="flex items-center gap-2">
+<span class="text-[13px] font-medium text-cyan-100/90 tracking-tight">Today's Money Received</span>
+<span class="text-[10px] font-bold uppercase tracking-wider bg-white/15 px-2 py-0.5 rounded-md backdrop-blur-sm text-cyan-200 border border-white/10">आज की कमाई</span>
+</div>
+<div class="flex items-baseline gap-2.5 mt-2">
+<h2 class="text-[34px] font-extrabold tracking-tight text-white font-sans drop-shadow-sm">₹18,450.00</h2>
+<!-- Glowing Positive Trend Badge -->
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-400/25 border border-emerald-300/40 text-emerald-300 text-[11px] font-bold shadow-xs">
+<span class="material-symbols-outlined text-[13px]">trending_up</span>
+              +14% vs yesterday
+            </span>
+</div>
+</div>
+<!-- Wallet Glyph Badge -->
+<div class="w-10 h-10 rounded-2xl bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center text-cyan-200 shadow-inner">
+<span class="material-symbols-outlined text-[22px]">payments</span>
+</div>
+</div>
+<!-- Bottom Card Metadata Divider -->
+<div class="relative z-10 mt-5 pt-3.5 border-t border-white/15 flex items-center justify-between text-[12px] text-cyan-100/80">
+<div class="flex items-center gap-1.5 font-medium">
+<span class="material-symbols-outlined text-[16px] text-emerald-400" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-white/90">42 payments received today</span>
+</div>
+<div class="flex items-center gap-1 font-semibold text-cyan-300 bg-white/10 px-2.5 py-1 rounded-lg">
+<span class="material-symbols-outlined text-[13px]">schedule</span>
+<span>Auto-settling at 10 PM</span>
+</div>
+</div>
+</section>
+<!-- Apple Voice Intelligence / Siri Style Microphone Centerpiece -->
+<section class="flex flex-col items-center justify-center py-2 px-1 text-center">
+<!-- Siri Concentric Ambient Luminous Rings -->
+<div class="relative flex items-center justify-center my-3">
+<!-- Outer Luminous Ring 2 -->
+<div class="absolute w-44 h-44 rounded-full bg-gradient-to-r from-sky-400/20 via-cyan-300/20 to-blue-500/20 siri-ring-2 pointer-events-none blur-sm"></div>
+<!-- Inner Ambient Ring 1 -->
+<div class="absolute w-36 h-36 rounded-full bg-gradient-to-tr from-cyan-400/35 to-blue-600/30 siri-ring-1 pointer-events-none"></div>
+<!-- Glowing Focal Mic Button -->
+<button class="relative w-24 h-24 rounded-full bg-gradient-to-tr from-[#0072ce] via-paytm-cyan to-[#00b9f5] text-white flex items-center justify-center shadow-ios-glow border-2 border-white/60 active:scale-90 hover:scale-105 transition-all duration-300 group">
+<!-- Glass Reflection Ring -->
+<div class="absolute inset-1 rounded-full bg-gradient-to-b from-white/35 to-transparent pointer-events-none"></div>
+<span class="material-symbols-outlined text-[44px] text-white drop-shadow-md group-hover:rotate-6 transition-transform" data-icon="mic" style="font-variation-settings: 'FILL' 1;">mic</span>
+</button>
+</div>
+<!-- Apple Typography Headline & Subhead -->
+<h3 class="text-[19px] font-bold text-slate-900 mt-2 tracking-tight max-w-xs">
+        Tap to start talking to your AI Business Partner
+      </h3>
+<p class="text-[13px] text-slate-500 mt-0.5 font-medium">
+        Ask in Hindi, Hinglish, or English
+      </p>
+<!-- Apple Siri Prompt Suggestion Capsules -->
+<div class="flex flex-wrap items-center justify-center gap-2 mt-4 w-full px-2">
+<button class="px-3.5 py-2 rounded-full ios-frosted-button border border-slate-200/90 hover:border-cyan-400 text-slate-800 text-[13px] font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[16px] text-cyan-600">record_voice_over</span>
+<span>"आज कितनी कमाई हुई?"</span>
+</button>
+<button class="px-3.5 py-2 rounded-full ios-frosted-button border border-slate-200/90 hover:border-cyan-400 text-slate-800 text-[13px] font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[16px] text-cyan-600">help</span>
+<span>"Who owes payment?"</span>
+</button>
+<button class="px-3.5 py-2 rounded-full ios-frosted-button border border-slate-200/90 hover:border-cyan-400 text-slate-800 text-[13px] font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[16px] text-cyan-600">equalizer</span>
+<span>"Show today's total"</span>
+</button>
+</div>
+</section>
+<!-- iOS Grouped Inset Style List: Recent Payment Logs -->
+<section class="space-y-2 pt-1 pb-4">
+<!-- Section Header -->
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<h4 class="text-[18px] font-bold text-slate-900 tracking-tight">Recent Payment Logs</h4>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-700 border border-emerald-500/30 gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+            Live
+          </span>
+</div>
+<button class="text-paytm-cyan hover:text-sky-600 font-semibold text-[13px] tracking-tight">View All</button>
+</div>
+<!-- iOS Grouped Card Container with Hairline Dividers -->
+<div class="bg-white rounded-2xl border border-black/[0.06] shadow-ios-card divide-y divide-slate-100 overflow-hidden">
+<!-- Item 1: Rohan Verma -->
+<div class="p-3.5 flex items-center justify-between hover:bg-slate-50/70 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-xs">
+<span class="material-symbols-outlined text-[20px]">account_balance</span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="text-[16px] font-bold text-slate-900">+₹500</span>
+<span class="text-[12px] text-slate-400 font-medium">• 10:30 AM</span>
+</div>
+<div class="flex items-center gap-1.5 text-[12px] text-slate-500">
+<span class="font-medium">UPI (Rohan Verma)</span>
+<span class="text-slate-300">•</span>
+<span class="inline-flex items-center gap-1 text-cyan-600 font-semibold">
+<span class="material-symbols-outlined text-[13px]">volume_up</span>
+                  Soundbox
+                </span>
+</div>
+</div>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-emerald-500 text-[22px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Item 2: Anita Gupta -->
+<div class="p-3.5 flex items-center justify-between hover:bg-slate-50/70 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-cyan-600 shadow-xs">
+<span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="text-[16px] font-bold text-slate-900">+₹1,200</span>
+<span class="text-[12px] text-slate-400 font-medium">• 10:18 AM</span>
+</div>
+<div class="flex items-center gap-1.5 text-[12px] text-slate-500 font-medium">
+<span>QR Scan (Anita Gupta)</span>
+</div>
+</div>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-emerald-500 text-[22px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Item 3: Paytm UPI -->
+<div class="p-3.5 flex items-center justify-between hover:bg-slate-50/70 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-xs">
+<span class="material-symbols-outlined text-[20px]">phone_android</span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="text-[16px] font-bold text-slate-900">+₹85</span>
+<span class="text-[12px] text-slate-400 font-medium">• 09:55 AM</span>
+</div>
+<div class="flex items-center gap-1.5 text-[12px] text-slate-500 font-medium">
+<span>Paytm UPI</span>
+</div>
+</div>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-emerald-500 text-[22px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Item 4: Card Swipe Machine #1 -->
+<div class="p-3.5 flex items-center justify-between hover:bg-slate-50/70 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 shadow-xs">
+<span class="material-symbols-outlined text-[20px]">credit_card</span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="text-[16px] font-bold text-slate-900">+₹340</span>
+<span class="text-[12px] text-slate-400 font-medium">• 09:42 AM</span>
+</div>
+<div class="flex items-center gap-1.5 text-[12px] text-slate-500 font-medium">
+<span>Card Swipe • Machine #1</span>
+</div>
+</div>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-emerald-500 text-[22px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- iOS Docked Frosted Glass Tab Bar with Home Indicator -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 ios-glass border-t border-black/[0.06] shadow-ios-tab">
+<div class="max-w-md mx-auto px-6 pt-2 pb-1.5 flex justify-around items-center">
+<!-- Tab 1: Home (Active with iOS Capsule Pill indicator) -->
+<button class="flex flex-col items-center justify-center relative py-1 px-4 active:scale-95 transition-transform">
+<div class="bg-paytm-cyan/15 text-paytm-cyan rounded-full px-4 py-1 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">storefront</span>
+<span class="text-[12px] font-bold text-slate-900">Home</span>
+</div>
+</button>
+<!-- Tab 2: Wallet (Inactive) -->
+<button class="flex flex-col items-center justify-center py-1 px-4 text-slate-400 hover:text-slate-600 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[22px]">account_balance_wallet</span>
+<span class="text-[10px] font-medium mt-0.5">Wallet</span>
+</button>
+<!-- Tab 3: Graphs (Inactive) -->
+<button class="flex flex-col items-center justify-center py-1 px-4 text-slate-400 hover:text-slate-600 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[22px]">bar_chart</span>
+<span class="text-[10px] font-medium mt-0.5">Graphs</span>
+</button>
+</div>
+<!-- Apple iOS Bottom Home Indicator Bar -->
+<div class="w-full flex justify-center pb-2 pt-1">
+<div class="w-32 h-1 bg-slate-900/35 rounded-full"></div>
+</div>
+</nav>
+</div>
+</body></html>

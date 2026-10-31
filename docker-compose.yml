@@ -1,0 +1,70 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: merchant_partner
+      POSTGRES_USER: merchant
+      POSTGRES_PASSWORD: merchant
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U merchant -d merchant_partner"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  ollama:
+    image: ollama/ollama:latest
+    ports: ["127.0.0.1:11434:11434"]
+    volumes: ["ollamadata:/root/.ollama"]
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+  ollama-model:
+    image: ollama/ollama:latest
+    entrypoint: ["ollama"]
+    command: ["pull", "${OLLAMA_MODEL:-qwen3:0.6b}"]
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    volumes: ["ollamadata:/root/.ollama"]
+    depends_on:
+      ollama: {condition: service_healthy}
+    restart: "no"
+  api:
+    build: ./backend
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      DATABASE_URL: postgresql+psycopg://merchant:merchant@db:5432/merchant_partner
+      REDIS_URL: redis://redis:6379/0
+      SESSION_SIGNING_KEY: ${SESSION_SIGNING_KEY:?Set SESSION_SIGNING_KEY in .env}
+      MODEL_PROVIDER: ${MODEL_PROVIDER:-ollama}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}
+      CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID:-}
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
+      CLOUDFLARE_MODEL: ${CLOUDFLARE_MODEL:-@cf/qwen/qwen3-30b-a3b-fp8}
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3:0.6b}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      ELEVENLABS_VOICE_ID: ${ELEVENLABS_VOICE_ID:-}
+      ELEVENLABS_MODEL: ${ELEVENLABS_MODEL:-eleven_multilingual_v2}
+      ALLOWED_ORIGINS: http://localhost:8081
+    ports: ["8000:8000"]
+    depends_on:
+      db: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      ollama-model: {condition: service_completed_successfully}
+    command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+volumes:
+  pgdata:
+  ollamadata:

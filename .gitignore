@@ -1,0 +1,16 @@
+.env
+mobile/.env
+mobile/node_modules/
+mobile/.expo/
+mobile/dist/
+mobile/android/
+backend/.venv/
+backend/*.egg-info/
+backend/.pytest_cache/
+backend/*.db
+backend/**/__pycache__/
+backend/.pytest_cache/
+*.py[cod]
+*.db
+# Local secrets written by `elevenlabs onboard`
+/.env.local

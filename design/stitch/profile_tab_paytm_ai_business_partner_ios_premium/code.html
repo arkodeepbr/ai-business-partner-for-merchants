@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Profile Tab - Paytm AI Business Partner (iOS Premium)</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container": "#eaedff",
+            "on-tertiary-fixed-variant": "#004e60",
+            "on-secondary-container": "#004f69",
+            "surface-container-highest": "#dee2f6",
+            "primary": "#001a45",
+            "surface-container-high": "#e3e7fc",
+            "background": "#faf8ff",
+            "outline": "#747781",
+            "error": "#ba1a1a",
+            "error-container": "#ffdad6",
+            "on-tertiary-fixed": "#001f28",
+            "inverse-on-surface": "#eef0ff",
+            "primary-fixed-dim": "#afc6ff",
+            "tertiary": "#001f29",
+            "on-tertiary": "#ffffff",
+            "primary-fixed": "#d9e2ff",
+            "secondary-fixed": "#c0e8ff",
+            "surface-tint": "#3d5d9e",
+            "on-surface-variant": "#434750",
+            "tertiary-fixed": "#b6ebff",
+            "on-secondary-fixed-variant": "#004d66",
+            "outline-variant": "#c4c6d2",
+            "on-secondary": "#ffffff",
+            "inverse-surface": "#2b303f",
+            "on-surface": "#161b2a",
+            "on-primary": "#ffffff",
+            "secondary-container": "#2bc6ff",
+            "on-background": "#161b2a",
+            "surface": "#faf8ff",
+            "surface-variant": "#dee2f6",
+            "inverse-primary": "#afc6ff",
+            "on-error": "#ffffff",
+            "on-secondary-fixed": "#001e2b",
+            "primary-container": "#002e6e",
+            "tertiary-fixed-dim": "#47d6ff",
+            "on-error-container": "#93000a",
+            "on-primary-fixed": "#001943",
+            "on-tertiary-container": "#00a6cb",
+            "secondary": "#006686",
+            "surface-container-lowest": "#ffffff",
+            "secondary-fixed-dim": "#71d2ff",
+            "on-primary-container": "#7998de",
+            "surface-bright": "#faf8ff",
+            "tertiary-container": "#003644",
+            "on-primary-fixed-variant": "#224585",
+            "surface-dim": "#d5d9ee",
+            "surface-container-low": "#f2f3ff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin-mobile": "1rem",
+            "space-xs": "0.25rem",
+            "gutter": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "margin": "2.5rem",
+            "space-xl": "2.5rem",
+            "gutter-mobile": "0.75rem"
+          },
+          "fontFamily": {
+            "display-hero-mobile": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-lg": ["Inter"],
+            "headline-xl": ["Inter"],
+            "display-hero": ["Inter"],
+            "label-numeric": ["Inter"],
+            "body-xl": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-md": ["Inter"],
+            "label-badge": ["Inter"],
+            "headline-xl-mobile": ["Inter"]
+          },
+          "fontSize": {
+            "display-hero-mobile": ["38px", { "lineHeight": "44px", "letterSpacing": "-0.025em", "fontWeight": "700" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "headline-lg": ["26px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "headline-xl": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.025em", "fontWeight": "700" }],
+            "display-hero": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.03em", "fontWeight": "700" }],
+            "label-numeric": ["16px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-xl": ["18px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+            "body-md": ["15px", { "lineHeight": "22px", "letterSpacing": "-0.005em", "fontWeight": "400" }],
+            "headline-md": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "label-badge": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+            "headline-xl-mobile": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      background-color: #F4F7FB;
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .material-symbols-outlined.fill-icon {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    /* iOS Frosted Glass Token & Inset Grouped Styling */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: 0 4px 16px -2px rgba(0, 46, 110, 0.04), 0 1px 3px 0 rgba(0, 0, 0, 0.02);
+    }
+    .glass-header {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+    }
+    .apple-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      border-radius: 9999px;
+      transition: background-color 0.25s ease;
+    }
+    .apple-switch-dot {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      border-radius: 9999px;
+      background-color: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.18);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .apple-switch.active {
+      background-color: #2bc6ff;
+    }
+    .apple-switch.active .apple-switch-dot {
+      transform: translateX(20px);
+    }
+    .apple-switch.inactive {
+      background-color: #dee2f6;
+    }
+    /* Custom refined scrollbar hide */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface antialiased bg-[#F4F7FB] min-h-screen flex justify-center selection:bg-secondary-fixed selection:text-primary">
+<!-- iPhone Pro Chassis Frame -->
+<div class="w-full max-w-md bg-[#F4F7FB] min-h-screen relative flex flex-col pb-32 shadow-2xl overflow-x-hidden">
+<!-- 1. iOS Status Bar with Dynamic Island -->
+<div class="sticky top-0 z-50 bg-[#F4F7FB]/90 backdrop-blur-xl pt-2 px-6 pb-2 transition-all">
+<div class="flex justify-between items-center text-primary">
+<span class="text-body-sm font-headline-md font-bold tracking-tight">9:41</span>
+<!-- Apple Dynamic Island Pill -->
+<div class="w-28 h-6 bg-primary rounded-full flex items-center justify-between px-2.5 shadow-sm">
+<div class="flex items-center space-x-1.5">
+<span class="w-2 h-2 rounded-full bg-secondary-container animate-pulse"></span>
+<span class="text-[9px] text-white/90 font-medium tracking-wide">Soundbox 4.0</span>
+</div>
+<span class="material-symbols-outlined text-[12px] text-secondary-fixed">wifi</span>
+</div>
+<div class="flex items-center space-x-1.5 text-primary">
+<span class="material-symbols-outlined text-body-sm">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-body-sm">wifi</span>
+<div class="w-5 h-2.5 border border-primary rounded-[3px] p-[1px] flex items-center">
+<div class="w-3.5 h-full bg-primary rounded-[1px]"></div>
+</div>
+</div>
+</div>
+<!-- Top Bar: Shared Component Identity Integration -->
+<div class="flex justify-between items-center pt-3 pb-1">
+<div class="flex items-center space-x-2">
+<div class="w-8 h-8 rounded-full bg-primary-container text-white flex items-center justify-center font-bold text-body-sm shadow-sm ring-2 ring-white">
+            SG
+          </div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary tracking-tight">Business Hub</h1>
+<p class="text-[11px] font-medium text-secondary">Paytm AI Partner v3.4</p>
+</div>
+</div>
+<!-- Quick Action Buttons -->
+<div class="flex items-center space-x-2">
+<button class="w-9 h-9 rounded-full bg-surface-container-lowest/80 border border-outline-variant/30 flex items-center justify-center text-primary shadow-sm hover:bg-surface-container transition-colors active:scale-95">
+<span class="material-symbols-outlined text-headline-md">qr_code_2</span>
+</button>
+<button class="w-9 h-9 rounded-full bg-surface-container-lowest/80 border border-outline-variant/30 flex items-center justify-center text-primary shadow-sm hover:bg-surface-container transition-colors active:scale-95">
+<span class="material-symbols-outlined text-headline-md">edit</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Main Scrollable Content Canvas -->
+<main class="px-4 pt-2 space-y-4 flex-1">
+<!-- 2. Merchant Profile Hero Bento Card -->
+<section class="glass-card rounded-2xl p-4 relative overflow-hidden">
+<!-- Ambient Decorative Glow -->
+<div class="absolute -right-8 -top-8 w-32 h-32 bg-secondary-fixed/30 rounded-full blur-2xl pointer-events-none"></div>
+<div class="flex items-start justify-between relative z-10">
+<div class="flex items-start space-x-3.5">
+<div class="relative">
+<div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-primary-container to-secondary flex items-center justify-center text-white text-headline-xl font-bold shadow-md">
+<span class="material-symbols-outlined text-3xl">storefront</span>
+</div>
+<div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-secondary-container border-2 border-white flex items-center justify-center text-primary shadow">
+<span class="material-symbols-outlined text-[13px] font-bold fill-icon">verified</span>
+</div>
+</div>
+<div class="space-y-0.5">
+<div class="flex items-center space-x-1.5">
+<h2 class="font-headline-md text-headline-md font-bold text-primary tracking-tight">Sharma General Store</h2>
+</div>
+<p class="font-body-md text-body-md font-medium text-on-surface-variant">Ramesh Kumar Sharma</p>
+<div class="flex items-center gap-1.5 pt-0.5">
+<span class="text-label-badge font-label-badge px-2 py-0.5 rounded-full bg-secondary-fixed text-primary font-bold">
+                  Tier 1 Merchant
+                </span>
+<span class="text-label-badge font-label-badge px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant font-medium">
+                  Active 4y
+                </span>
+</div>
+</div>
+</div>
+</div>
+<!-- IDs Row -->
+<div class="mt-4 pt-3 border-t border-outline-variant/30 grid grid-cols-2 gap-2 text-left">
+<div class="bg-surface-container-low/70 rounded-xl p-2.5">
+<span class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">Merchant ID</span>
+<div class="flex items-center justify-between mt-0.5">
+<span class="text-body-sm font-label-numeric font-bold text-primary">8940284729</span>
+<button class="text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-body-sm">content_copy</span>
+</button>
+</div>
+</div>
+<div class="bg-surface-container-low/70 rounded-xl p-2.5">
+<span class="block text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">Business UPI</span>
+<div class="flex items-center justify-between mt-0.5">
+<span class="text-body-sm font-label-numeric font-bold text-primary truncate max-w-[105px]">sharmastore@paytm</span>
+<button class="text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-body-sm">content_copy</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Quick Action Pills -->
+<div class="mt-3 grid grid-cols-3 gap-2">
+<button class="flex items-center justify-center space-x-1.5 py-2 px-1 rounded-xl bg-primary text-white text-body-sm font-medium shadow-sm hover:opacity-95 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-body-md">qr_code</span>
+<span class="text-[12px] font-semibold">Store QR</span>
+</button>
+<button class="flex items-center justify-center space-x-1.5 py-2 px-1 rounded-xl bg-surface-container-lowest border border-outline-variant/40 text-primary text-body-sm font-medium shadow-sm hover:bg-surface-container-low active:scale-95 transition-all">
+<span class="material-symbols-outlined text-body-md text-secondary">download</span>
+<span class="text-[12px] font-semibold">Statement</span>
+</button>
+<button class="flex items-center justify-center space-x-1.5 py-2 px-1 rounded-xl bg-surface-container-lowest border border-outline-variant/40 text-primary text-body-sm font-medium shadow-sm hover:bg-surface-container-low active:scale-95 transition-all">
+<span class="material-symbols-outlined text-body-md text-secondary">share</span>
+<span class="text-[12px] font-semibold">Share UPI</span>
+</button>
+</div>
+</section>
+<!-- 3. Device & Hardware Integration (Apple Inset Grouped) -->
+<section class="space-y-1.5">
+<div class="px-2 flex justify-between items-center">
+<span class="text-label-badge font-label-badge uppercase tracking-wider font-bold text-on-surface-variant">Connected Hardware &amp; Audio</span>
+<span class="text-label-badge font-label-badge font-semibold text-secondary flex items-center">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 animate-ping"></span> 2 Online
+          </span>
+</div>
+<div class="glass-card rounded-2xl overflow-hidden divide-y divide-outline-variant/20">
+<!-- Soundbox Item -->
+<div class="p-3.5 space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-xl bg-secondary-container/20 text-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-headline-md">speaker</span>
+</div>
+<div>
+<div class="flex items-center space-x-1.5">
+<h3 class="font-headline-md text-[15px] font-bold text-primary">Paytm Smart Soundbox 4.0</h3>
+<span class="px-1.5 py-0.2 rounded text-[10px] bg-emerald-100 text-emerald-800 font-bold">BT+4G</span>
+</div>
+<div class="flex items-center space-x-2 text-[12px] text-on-surface-variant mt-0.5">
+<span class="flex items-center text-emerald-600 font-medium">
+<span class="material-symbols-outlined text-[13px] mr-0.5 fill-icon">check_circle</span> Active
+                    </span>
+<span>•</span>
+<span class="flex items-center font-label-numeric font-medium">
+<span class="material-symbols-outlined text-[14px] mr-0.5 text-secondary">battery_horiz_075</span> 94%
+                    </span>
+</div>
+</div>
+</div>
+<button class="px-2.5 py-1 rounded-lg bg-surface-container text-primary text-[11px] font-semibold hover:bg-surface-container-high transition-colors">
+                Ping Device
+              </button>
+</div>
+<!-- Soundbox Controls: Volume + Language -->
+<div class="bg-surface-container-low/70 rounded-xl p-2.5 space-y-2.5">
+<div class="flex items-center justify-between text-body-sm">
+<span class="text-[12px] font-medium text-on-surface-variant flex items-center">
+<span class="material-symbols-outlined text-body-md mr-1 text-primary">volume_up</span> Broadcast Volume
+                </span>
+<span class="text-[12px] font-label-numeric font-bold text-primary">85%</span>
+</div>
+<div class="relative flex items-center">
+<input class="w-full h-1.5 bg-outline-variant/40 rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="85"/>
+</div>
+<!-- Language Selector Segmented Control -->
+<div class="pt-1 flex items-center justify-between">
+<span class="text-[12px] font-medium text-on-surface-variant">Alert Language:</span>
+<div class="bg-surface-container-highest/60 p-0.5 rounded-lg flex space-x-1 text-[11px] font-medium">
+<button class="px-2 py-0.5 rounded-md text-on-surface-variant">Hindi</button>
+<button class="px-2 py-0.5 rounded-md bg-white text-primary font-bold shadow-xs">Hinglish</button>
+<button class="px-2 py-0.5 rounded-md text-on-surface-variant">English</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Card POS Swipe Terminal Item -->
+<div class="p-3.5 flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-xl bg-primary-container/10 text-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-headline-md">point_of_sale</span>
+</div>
+<div>
+<h3 class="font-headline-md text-[15px] font-bold text-primary">Card POS Smart Mini</h3>
+<div class="flex items-center space-x-2 text-[12px] text-on-surface-variant">
+<span class="text-emerald-600 font-medium">Online &amp; NFC Ready</span>
+<span>•</span>
+<span>SN: PT-90281</span>
+</div>
+</div>
+</div>
+<button class="flex items-center space-x-1 px-3 py-1.5 rounded-xl border border-secondary text-secondary text-[12px] font-semibold hover:bg-secondary-fixed/30 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[14px]">contactless</span>
+<span>Test Tap</span>
+</button>
+</div>
+</div>
+</section>
+<!-- 4. Bank & Settlement Controls (Apple Inset Grouped) -->
+<section class="space-y-1.5">
+<div class="px-2 flex justify-between items-center">
+<span class="text-label-badge font-label-badge uppercase tracking-wider font-bold text-on-surface-variant">Bank Accounts &amp; Settlements</span>
+<span class="text-label-badge font-label-badge font-semibold text-secondary">Daily Cap: ₹25,00,000</span>
+</div>
+<div class="glass-card rounded-2xl overflow-hidden divide-y divide-outline-variant/20">
+<!-- Primary Account Tile -->
+<div class="p-3.5 flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-11 h-11 rounded-xl bg-white border border-outline-variant/30 flex items-center justify-center shadow-xs">
+<!-- Visual Token for HDFC -->
+<div class="w-7 h-7 rounded bg-blue-900 text-white flex items-center justify-center font-bold text-[10px]">
+                  HDFC
+                </div>
+</div>
+<div>
+<div class="flex items-center space-x-1.5">
+<h3 class="font-headline-md text-[15px] font-bold text-primary">HDFC Bank Primary</h3>
+<span class="material-symbols-outlined text-secondary text-[15px] fill-icon">verified</span>
+</div>
+<p class="text-[12px] font-label-numeric text-on-surface-variant">A/C: •••••••• 4910 | IFSC: HDFC0000043</p>
+<div class="mt-1 flex items-center space-x-2">
+<span class="text-[10px] px-1.5 py-0.5 rounded bg-surface-container font-semibold text-primary">Auto-Settle Enabled</span>
+</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-headline-md">chevron_right</span>
+</div>
+<!-- Settlement Schedule Mode Switch -->
+<div class="p-3.5 flex items-center justify-between bg-surface-container-low/40">
+<div>
+<div class="flex items-center space-x-1">
+<span class="font-headline-md text-[14px] font-bold text-primary">Instant Settlement (On Demand)</span>
+<span class="px-1.5 py-0.2 rounded text-[9px] bg-secondary-fixed text-primary font-bold">Fast</span>
+</div>
+<p class="text-[11px] text-on-surface-variant">Settles transactions to bank account in 3 seconds</p>
+</div>
+<div class="apple-switch active cursor-pointer" onclick="this.classList.toggle('active'); this.classList.toggle('inactive')">
+<div class="apple-switch-dot"></div>
+</div>
+</div>
+<!-- Batch Timing Selection -->
+<div class="p-3.5 flex items-center justify-between text-body-sm">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-secondary text-body-md">schedule</span>
+<span class="text-[13px] font-medium text-primary">Batch Settlement Cut-off</span>
+</div>
+<span class="text-[13px] font-label-numeric font-bold text-on-surface-variant flex items-center">
+              Daily 10:00 PM <span class="material-symbols-outlined text-body-md text-outline ml-1">chevron_right</span>
+</span>
+</div>
+<!-- Add Account Link -->
+<div class="p-3 flex items-center justify-center">
+<button class="flex items-center space-x-1.5 text-secondary text-[13px] font-bold hover:underline">
+<span class="material-symbols-outlined text-body-md">add_circle</span>
+<span>Link Backup Bank Account / Modify IFSC</span>
+</button>
+</div>
+</div>
+</section>
+<!-- 5. AI Business Partner & Soundbox Preferences -->
+<section class="space-y-1.5">
+<div class="px-2 flex justify-between items-center">
+<span class="text-label-badge font-label-badge uppercase tracking-wider font-bold text-on-surface-variant">Paytm AI Copilot &amp; Voice Engine</span>
+<span class="text-label-badge font-label-badge font-bold text-secondary-container bg-primary px-2 py-0.5 rounded-full">AI 2.0</span>
+</div>
+<div class="glass-card rounded-2xl overflow-hidden divide-y divide-outline-variant/20">
+<!-- AI Daily Audio Summaries -->
+<div class="p-3.5 flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-secondary-container text-white flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-body-md">neurology</span>
+</div>
+<div>
+<h3 class="font-headline-md text-[14px] font-bold text-primary">AI Daily Audio Briefings</h3>
+<p class="text-[11px] text-on-surface-variant">Morning sales report read aloud on Soundbox</p>
+</div>
+</div>
+<div class="apple-switch active cursor-pointer" onclick="this.classList.toggle('active'); this.classList.toggle('inactive')">
+<div class="apple-switch-dot"></div>
+</div>
+</div>
+<!-- Voice Speed and Accent Selector -->
+<div class="p-3.5 flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-9 h-9 rounded-xl bg-surface-container text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-body-md">record_voice_over</span>
+</div>
+<div>
+<h3 class="font-headline-md text-[14px] font-bold text-primary">Voice Persona &amp; Tempo</h3>
+<p class="text-[11px] text-on-surface-variant">Friendly Executive • 1.1x speed</p>
+</div>
+</div>
+<button class="px-2.5 py-1 text-[11px] font-semibold text-secondary bg-surface-container-high rounded-lg hover:bg-surface-container-highest">
+              Customize
+            </button>
+</div>
+<!-- Fraud & Anomaly Voice Ping -->
+<div class="p-3.5 flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center">
+<span class="material-symbols-outlined text-body-md">shield_with_heart</span>
+</div>
+<div>
+<h3 class="font-headline-md text-[14px] font-bold text-primary">Suspicious Payment Intercept</h3>
+<p class="text-[11px] text-on-surface-variant">Immediate spoken chime on forged screenshot checks</p>
+</div>
+</div>
+<div class="apple-switch active cursor-pointer" onclick="this.classList.toggle('active'); this.classList.toggle('inactive')">
+<div class="apple-switch-dot"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- 6. Business & Tax KYC Details -->
+<section class="space-y-1.5">
+<div class="px-2">
+<span class="text-label-badge font-label-badge uppercase tracking-wider font-bold text-on-surface-variant">Business Compliance &amp; KYC</span>
+</div>
+<div class="glass-card rounded-2xl overflow-hidden divide-y divide-outline-variant/20">
+<div class="p-3.5 flex items-center justify-between">
+<div>
+<span class="text-[11px] text-on-surface-variant font-medium">GSTIN Registration</span>
+<div class="flex items-center space-x-1.5 mt-0.5">
+<span class="text-body-sm font-label-numeric font-bold text-primary">07AAAAA0000A1Z5</span>
+<span class="text-[10px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold">Verified</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-headline-md">check_circle</span>
+</div>
+<div class="p-3.5 flex items-center justify-between">
+<div>
+<span class="text-[11px] text-on-surface-variant font-medium">PAN Verification (Entity)</span>
+<div class="flex items-center space-x-1.5 mt-0.5">
+<span class="text-body-sm font-label-numeric font-bold text-primary">AAECS8910M</span>
+<span class="text-[10px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold">Active</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-headline-md">check_circle</span>
+</div>
+<div class="p-3.5 flex items-center justify-between">
+<div>
+<span class="text-[11px] text-on-surface-variant font-medium">Store Category &amp; Timings</span>
+<p class="text-body-sm font-bold text-primary mt-0.5">Grocery &amp; Supermarket</p>
+<p class="text-[12px] text-on-surface-variant">07:30 AM – 11:00 PM • Open All 7 Days</p>
+</div>
+<span class="material-symbols-outlined text-outline text-headline-md">chevron_right</span>
+</div>
+<div class="p-3.5 flex items-start justify-between">
+<div>
+<span class="text-[11px] text-on-surface-variant font-medium">Registered Business Address</span>
+<p class="text-[13px] font-medium text-primary mt-0.5 leading-snug">
+                Shop No. 42, Main Road, Chandni Chowk, Central Delhi, New Delhi - 110006
+              </p>
+</div>
+<span class="material-symbols-outlined text-secondary text-body-md mt-1">map</span>
+</div>
+</div>
+</section>
+<!-- 7. Security, Staff Access & Support -->
+<section class="space-y-1.5">
+<div class="px-2">
+<span class="text-label-badge font-label-badge uppercase tracking-wider font-bold text-on-surface-variant">Security &amp; Team Access</span>
+</div>
+<div class="glass-card rounded-2xl overflow-hidden divide-y divide-outline-variant/20">
+<!-- Face ID / Biometrics -->
+<div class="p-3.5 flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-9 h-9 rounded-xl bg-surface-container text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-body-md">lock</span>
+</div>
+<div>
+<h3 class="font-headline-md text-[14px] font-bold text-primary">Biometric App Lock &amp; Face ID</h3>
+<p class="text-[11px] text-on-surface-variant">Mandate biometric unlock before refunds</p>
+</div>
+</div>
+<div class="apple-switch active cursor-pointer" onclick="this.classList.toggle('active'); this.classList.toggle('inactive')">
+<div class="apple-switch-dot"></div>
+</div>
+</div>
+<!-- Staff Accounts -->
+<div class="p-3.5 flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-9 h-9 rounded-xl bg-surface-container text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-body-md">group</span>
+</div>
+<div>
+<h3 class="font-headline-md text-[14px] font-bold text-primary">Staff &amp; Cashier Sub-Accounts</h3>
+<p class="text-[11px] text-on-surface-variant">2 Cashiers active (View only, No refunds)</p>
+</div>
+</div>
+<div class="flex items-center space-x-1">
+<span class="text-[12px] font-semibold text-secondary">Manage</span>
+<span class="material-symbols-outlined text-outline text-headline-md">chevron_right</span>
+</div>
+</div>
+<!-- 24/7 Merchant Support -->
+<div class="p-3.5 flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-9 h-9 rounded-xl bg-secondary-fixed text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-body-md">support_agent</span>
+</div>
+<div>
+<h3 class="font-headline-md text-[14px] font-bold text-primary">24x7 Priority Partner Care</h3>
+<p class="text-[11px] text-on-surface-variant">Direct line to Dedicated Relationship Manager</p>
+</div>
+</div>
+<button class="px-3 py-1 rounded-xl bg-primary text-white text-[11px] font-semibold hover:opacity-90">
+              Call Now
+            </button>
+</div>
+</div>
+</section>
+<!-- Log Out & Version Action -->
+<section class="pt-2 pb-6 space-y-3">
+<button class="w-full py-3.5 rounded-2xl bg-white border border-error/30 text-error font-headline-md text-body-md font-bold flex items-center justify-center space-x-2 shadow-xs hover:bg-error-container/20 active:scale-98 transition-all">
+<span class="material-symbols-outlined text-body-md">logout</span>
+<span>Log Out of Sharma General Store</span>
+</button>
+<p class="text-center text-[11px] text-on-surface-variant font-medium">
+          Paytm for Business AI Engine • Build 24.11.02 • Encrypted via TLS 1.3
+        </p>
+</section>
+</main>
+<!-- 8. iOS Fixed Bottom Navigation Bar (Matched to Shared Components & Intent Lock) -->
+<nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 glass-header border-t border-outline-variant/30 px-6 pt-2 pb-6 flex justify-around items-center">
+<!-- Home Tab -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all group" href="#">
+<span class="material-symbols-outlined text-[23px] group-hover:scale-110 transition-transform">storefront</span>
+<span class="text-[10px] font-medium tracking-tight mt-0.5">Home</span>
+</a>
+<!-- Wallet Tab -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all group" href="#">
+<span class="material-symbols-outlined text-[23px] group-hover:scale-110 transition-transform">account_balance_wallet</span>
+<span class="text-[10px] font-medium tracking-tight mt-0.5">Wallet</span>
+</a>
+<!-- Graphs Tab -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all group" href="#">
+<span class="material-symbols-outlined text-[23px] group-hover:scale-110 transition-transform">bar_chart</span>
+<span class="text-[10px] font-medium tracking-tight mt-0.5">Graphs</span>
+</a>
+<!-- Profile Tab (ACTIVE - Strict Destination Mapping Lock) -->
+<a class="flex flex-col items-center justify-center bg-secondary-fixed text-primary rounded-xl px-3 py-1 font-bold shadow-xs" href="#">
+<span class="material-symbols-outlined text-[23px] fill-icon">person</span>
+<span class="text-[10px] font-bold tracking-tight mt-0.5">Profile</span>
+</a>
+</nav>
+<!-- iOS Home Indicator Pill -->
+<div class="fixed bottom-1 left-0 right-0 max-w-md mx-auto pointer-events-none flex justify-center z-50">
+<div class="w-32 h-1 bg-primary/25 rounded-full"></div>
+</div>
+</div>
+</body></html>

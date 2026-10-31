@@ -1,0 +1,1791 @@
+openapi: 3.1.0
+info:
+  title: FastAPI
+  version: 0.1.0
+paths:
+  /integrations/status:
+    get:
+      summary: Integration Status
+      operationId: integration_status_integrations_status_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /integrations/import/transactions:
+    post:
+      summary: Import Transactions
+      description: Accept a merchant-authorized normalized import, never label it as provider-live data.
+      operationId: import_transactions_integrations_import_transactions_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionImport'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /receivables:
+    get:
+      summary: List Receivables
+      operationId: list_receivables_receivables_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^(pending|settled)$
+          - type: 'null'
+          title: Status
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 200
+          minimum: 1
+          default: 100
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      summary: Create Receivable
+      description: Create a confirmed, merchant-entered due record, separate from processor payments.
+      operationId: create_receivable_receivables_post
+      security:
+      - HTTPBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReceivableCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /stores:
+    get:
+      summary: List Stores
+      operationId: list_stores_stores_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+    post:
+      summary: Create Store
+      operationId: create_store_stores_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreIn'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /customers:
+    get:
+      summary: List Customers
+      operationId: list_customers_customers_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 200
+          minimum: 1
+          default: 50
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      summary: Create Customer
+      operationId: create_customer_customers_post
+      security:
+      - HTTPBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerIn'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /customers/{customer_id}/marketing-consent:
+    patch:
+      summary: Update Customer Consent
+      operationId: update_customer_consent_customers__customer_id__marketing_consent_patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: customer_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Customer Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsentIn'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /inventory/{product_id}/movements:
+    post:
+      summary: Adjust Inventory
+      operationId: adjust_inventory_inventory__product_id__movements_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Product Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockAdjustment'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      summary: Inventory Movements
+      operationId: inventory_movements_inventory__product_id__movements_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Product Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /suppliers:
+    get:
+      summary: List Suppliers
+      operationId: list_suppliers_suppliers_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+    post:
+      summary: Create Supplier
+      operationId: create_supplier_suppliers_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierIn'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /purchase-orders:
+    get:
+      summary: List Purchase Orders
+      operationId: list_purchase_orders_purchase_orders_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+    post:
+      summary: Create Purchase Order
+      operationId: create_purchase_order_purchase_orders_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderIn'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /campaigns/{campaign_id}/prepare-approval:
+    patch:
+      summary: Prepare Campaign Approval
+      operationId: prepare_campaign_approval_campaigns__campaign_id__prepare_approval_patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: campaign_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Campaign Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /campaigns:
+    get:
+      summary: List Campaigns
+      operationId: list_campaigns_campaigns_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+    post:
+      summary: Create Campaign Draft
+      operationId: create_campaign_draft_campaigns_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CampaignIn'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /credit/offers:
+    get:
+      summary: Credit Offers
+      operationId: credit_offers_credit_offers_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /tax/summary:
+    get:
+      summary: Tax Summary
+      operationId: tax_summary_tax_summary_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: period
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+          title: Period
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /reports:
+    get:
+      summary: List Reports
+      operationId: list_reports_reports_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /staff:
+    get:
+      summary: List Staff
+      operationId: list_staff_staff_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+    post:
+      summary: Create Staff
+      operationId: create_staff_staff_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StaffIn'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /notifications:
+    get:
+      summary: List Notifications
+      operationId: list_notifications_notifications_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: unread_only
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+          title: Unread Only
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /notifications/{notification_id}/read:
+    post:
+      summary: Mark Notification Read
+      operationId: mark_notification_read_notifications__notification_id__read_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: notification_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Notification Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /conversations:
+    get:
+      summary: List Conversations
+      operationId: list_conversations_conversations_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+    post:
+      summary: Create Conversation
+      operationId: create_conversation_conversations_post
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /conversations/{conversation_id}/messages:
+    get:
+      summary: Get Messages
+      operationId: get_messages_conversations__conversation_id__messages_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: conversation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Conversation Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      summary: Send Message
+      operationId: send_message_conversations__conversation_id__messages_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: conversation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Conversation Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryIn'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /analytics/peak-hours:
+    get:
+      summary: Peak Hours
+      operationId: peak_hours_analytics_peak_hours_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: days
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 365
+          minimum: 1
+          default: 30
+          title: Days
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /analytics/period-comparison:
+    get:
+      summary: Period Comparison
+      operationId: period_comparison_analytics_period_comparison_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: days
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 90
+          minimum: 1
+          default: 7
+          title: Days
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /analytics/timeline:
+    get:
+      summary: Sales Timeline
+      description: Return merchant-scoped hourly or daily collections and refunds in India time.
+      operationId: sales_timeline_analytics_timeline_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: period
+        in: query
+        required: false
+        schema:
+          enum:
+          - day
+          - week
+          - month
+          type: string
+          default: day
+          title: Period
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesTimeline'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /analytics/anomalies:
+    get:
+      summary: Sales Anomalies
+      operationId: sales_anomalies_analytics_anomalies_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /cashflow/forecast:
+    get:
+      summary: Cashflow Forecast
+      operationId: cashflow_forecast_cashflow_forecast_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /health:
+    get:
+      summary: Health
+      operationId: health_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /merchants:
+    post:
+      summary: Create Merchant
+      operationId: create_merchant_merchants_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /auth/google:
+    post:
+      summary: Google Sign In
+      operationId: google_sign_in_auth_google_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleSignInRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /auth/local-session:
+    post:
+      summary: Local Session
+      operationId: local_session_auth_local_session_post
+      parameters:
+      - name: merchant_id
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Merchant Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /me:
+    get:
+      summary: Me
+      operationId: me_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /assistant/voices:
+    get:
+      summary: Assistant Voices
+      operationId: assistant_voices_assistant_voices_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /assistant/speech:
+    post:
+      summary: Assistant Speech
+      operationId: assistant_speech_assistant_speech_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpeechRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /dashboard/sales:
+    get:
+      summary: Sales Summary
+      operationId: sales_summary_dashboard_sales_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: days
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 365
+          minimum: 1
+          default: 1
+          title: Days
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesSummary'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /dashboard/briefing:
+    get:
+      summary: Dashboard Briefing
+      description: Build a daily, read-only summary from this merchant's recorded data.
+      operationId: dashboard_briefing_dashboard_briefing_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: language
+        in: query
+        required: false
+        schema:
+          enum:
+          - en
+          - hi
+          type: string
+          default: en
+          title: Language
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /transactions:
+    get:
+      summary: Transactions
+      operationId: transactions_transactions_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 200
+          minimum: 1
+          default: 50
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /transactions/{transaction_id}:
+    get:
+      summary: Transaction Detail
+      operationId: transaction_detail_transactions__transaction_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: transaction_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Transaction Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /cashflow/settlements:
+    get:
+      summary: Settlements
+      operationId: settlements_cashflow_settlements_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /inventory:
+    get:
+      summary: Inventory
+      operationId: inventory_inventory_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ProductOut'
+                type: array
+                title: Response Inventory Inventory Get
+      security:
+      - HTTPBearer: []
+    post:
+      summary: Add Product
+      operationId: add_product_inventory_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /inventory/alerts:
+    get:
+      summary: Inventory Alerts
+      operationId: inventory_alerts_inventory_alerts_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /approvals:
+    get:
+      summary: List Proposals
+      operationId: list_proposals_approvals_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ActionOut'
+                type: array
+                title: Response List Proposals Approvals Get
+      security:
+      - HTTPBearer: []
+    post:
+      summary: Create Proposal
+      operationId: create_proposal_approvals_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /approvals/{proposal_id}/decision:
+    post:
+      summary: Decide Proposal
+      operationId: decide_proposal_approvals__proposal_id__decision_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: proposal_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Proposal Id
+      - name: decision
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^(approve|reject)$
+          title: Decision
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /assistant/query:
+    post:
+      summary: Assistant Query
+      operationId: assistant_query_assistant_query_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssistantRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssistantResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+components:
+  schemas:
+    ActionCreate:
+      properties:
+        kind:
+          type: string
+          pattern: ^(purchase_order|campaign|credit_application|report_share)$
+          title: Kind
+        payload:
+          additionalProperties: true
+          type: object
+          title: Payload
+      type: object
+      required:
+      - kind
+      - payload
+      title: ActionCreate
+    ActionOut:
+      properties:
+        id:
+          type: string
+          title: Id
+        kind:
+          type: string
+          title: Kind
+        status:
+          type: string
+          title: Status
+        expires_at:
+          type: string
+          format: date-time
+          title: Expires At
+      type: object
+      required:
+      - id
+      - kind
+      - status
+      - expires_at
+      title: ActionOut
+    AssistantRequest:
+      properties:
+        question:
+          type: string
+          maxLength: 2000
+          minLength: 1
+          title: Question
+        conversation_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Conversation Id
+        response_language:
+          anyOf:
+          - type: string
+            enum:
+            - en
+            - hi
+          - type: 'null'
+          title: Response Language
+      type: object
+      required:
+      - question
+      title: AssistantRequest
+    AssistantResponse:
+      properties:
+        answer:
+          type: string
+          title: Answer
+        sources:
+          items:
+            type: string
+          type: array
+          title: Sources
+        grounded:
+          type: boolean
+          title: Grounded
+          default: true
+        pending_receivable_draft:
+          anyOf:
+          - $ref: '#/components/schemas/PendingReceivableDraft'
+          - type: 'null'
+      type: object
+      required:
+      - answer
+      - sources
+      title: AssistantResponse
+    CampaignIn:
+      properties:
+        name:
+          type: string
+          maxLength: 180
+          minLength: 1
+          title: Name
+        message:
+          type: string
+          maxLength: 2000
+          minLength: 1
+          title: Message
+      type: object
+      required:
+      - name
+      - message
+      title: CampaignIn
+    ConsentIn:
+      properties:
+        consent:
+          type: boolean
+          title: Consent
+      type: object
+      required:
+      - consent
+      title: ConsentIn
+    CustomerIn:
+      properties:
+        display_name:
+          type: string
+          maxLength: 180
+          minLength: 1
+          title: Display Name
+        contact_hash:
+          anyOf:
+          - type: string
+            maxLength: 128
+          - type: 'null'
+          title: Contact Hash
+      type: object
+      required:
+      - display_name
+      title: CustomerIn
+    GoogleSignInRequest:
+      properties:
+        id_token:
+          type: string
+          maxLength: 8192
+          minLength: 1
+          title: Id Token
+      type: object
+      required:
+      - id_token
+      title: GoogleSignInRequest
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    ImportedTransaction:
+      properties:
+        external_id:
+          type: string
+          maxLength: 120
+          minLength: 1
+          title: External Id
+        amount:
+          anyOf:
+          - type: number
+            exclusiveMinimum: 0.0
+          - type: string
+          title: Amount
+        status:
+          type: string
+          pattern: ^(succeeded|failed|refunded)$
+          title: Status
+        payment_method:
+          type: string
+          maxLength: 32
+          title: Payment Method
+          default: unknown
+        occurred_at:
+          type: string
+          format: date-time
+          title: Occurred At
+        sender_name:
+          anyOf:
+          - type: string
+            maxLength: 180
+          - type: 'null'
+          title: Sender Name
+        sender_reference:
+          anyOf:
+          - type: string
+            maxLength: 180
+          - type: 'null'
+          title: Sender Reference
+        sender_contact:
+          anyOf:
+          - type: string
+            maxLength: 180
+          - type: 'null'
+          title: Sender Contact
+      type: object
+      required:
+      - external_id
+      - amount
+      - status
+      - occurred_at
+      title: ImportedTransaction
+    MerchantCreate:
+      properties:
+        name:
+          type: string
+          maxLength: 180
+          minLength: 2
+          title: Name
+        tier:
+          type: string
+          pattern: ^(qr|soundbox|pos|omnichannel)$
+          title: Tier
+          default: qr
+      type: object
+      required:
+      - name
+      title: MerchantCreate
+    MerchantOut:
+      properties:
+        id:
+          type: string
+          title: Id
+        name:
+          type: string
+          title: Name
+        tier:
+          type: string
+          title: Tier
+        currency:
+          type: string
+          title: Currency
+      type: object
+      required:
+      - id
+      - name
+      - tier
+      - currency
+      title: MerchantOut
+    PendingReceivableDraft:
+      properties:
+        customer_name:
+          type: string
+          maxLength: 180
+          minLength: 1
+          title: Customer Name
+        amount:
+          type: string
+          title: Amount
+        note:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Note
+      type: object
+      required:
+      - customer_name
+      - amount
+      title: PendingReceivableDraft
+    ProductCreate:
+      properties:
+        name:
+          type: string
+          maxLength: 180
+          minLength: 1
+          title: Name
+        sku:
+          anyOf:
+          - type: string
+            maxLength: 80
+          - type: 'null'
+          title: Sku
+        quantity:
+          type: integer
+          minimum: 0.0
+          title: Quantity
+          default: 0
+        reorder_level:
+          type: integer
+          minimum: 0.0
+          title: Reorder Level
+          default: 0
+        unit:
+          type: string
+          maxLength: 24
+          title: Unit
+          default: unit
+      type: object
+      required:
+      - name
+      title: ProductCreate
+    ProductOut:
+      properties:
+        name:
+          type: string
+          maxLength: 180
+          minLength: 1
+          title: Name
+        sku:
+          anyOf:
+          - type: string
+            maxLength: 80
+          - type: 'null'
+          title: Sku
+        quantity:
+          type: integer
+          minimum: 0.0
+          title: Quantity
+          default: 0
+        reorder_level:
+          type: integer
+          minimum: 0.0
+          title: Reorder Level
+          default: 0
+        unit:
+          type: string
+          maxLength: 24
+          title: Unit
+          default: unit
+        id:
+          type: string
+          title: Id
+      type: object
+      required:
+      - name
+      - id
+      title: ProductOut
+    PurchaseLine:
+      properties:
+        product_id:
+          type: string
+          title: Product Id
+        quantity:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Quantity
+        unit_cost:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+          title: Unit Cost
+      type: object
+      required:
+      - product_id
+      - quantity
+      - unit_cost
+      title: PurchaseLine
+    PurchaseOrderIn:
+      properties:
+        supplier_id:
+          type: string
+          title: Supplier Id
+        lines:
+          items:
+            $ref: '#/components/schemas/PurchaseLine'
+          type: array
+          maxItems: 100
+          minItems: 1
+          title: Lines
+      type: object
+      required:
+      - supplier_id
+      - lines
+      title: PurchaseOrderIn
+    QueryIn:
+      properties:
+        question:
+          type: string
+          maxLength: 2000
+          minLength: 1
+          title: Question
+      type: object
+      required:
+      - question
+      title: QueryIn
+    ReceivableCreate:
+      properties:
+        customer_name:
+          type: string
+          maxLength: 180
+          minLength: 1
+          title: Customer Name
+        amount:
+          anyOf:
+          - type: number
+            exclusiveMinimum: 0.0
+          - type: string
+          title: Amount
+        note:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Note
+        idempotency_key:
+          type: string
+          maxLength: 80
+          minLength: 12
+          title: Idempotency Key
+      type: object
+      required:
+      - customer_name
+      - amount
+      - idempotency_key
+      title: ReceivableCreate
+    SalesSummary:
+      properties:
+        currency:
+          type: string
+          title: Currency
+        collection_total:
+          type: string
+          title: Collection Total
+        successful_transactions:
+          type: integer
+          title: Successful Transactions
+        refunds_total:
+          type: string
+          title: Refunds Total
+        pending_settlements:
+          type: string
+          title: Pending Settlements
+        source:
+          type: string
+          title: Source
+        as_of:
+          type: string
+          format: date-time
+          title: As Of
+        data_available:
+          type: boolean
+          title: Data Available
+      type: object
+      required:
+      - currency
+      - collection_total
+      - successful_transactions
+      - refunds_total
+      - pending_settlements
+      - source
+      - as_of
+      - data_available
+      title: SalesSummary
+    SalesTimeline:
+      properties:
+        period:
+          type: string
+          enum:
+          - day
+          - week
+          - month
+          title: Period
+        timezone:
+          type: string
+          title: Timezone
+        as_of:
+          type: string
+          format: date-time
+          title: As Of
+        start:
+          type: string
+          format: date-time
+          title: Start
+        end:
+          type: string
+          format: date-time
+          title: End
+        buckets:
+          items:
+            $ref: '#/components/schemas/SalesTimelineBucket'
+          type: array
+          title: Buckets
+        collections:
+          type: string
+          title: Collections
+        refunds:
+          type: string
+          title: Refunds
+        successful_transactions:
+          type: integer
+          title: Successful Transactions
+        source:
+          type: string
+          title: Source
+        collections_are_not_profit:
+          type: boolean
+          title: Collections Are Not Profit
+      type: object
+      required:
+      - period
+      - timezone
+      - as_of
+      - start
+      - end
+      - buckets
+      - collections
+      - refunds
+      - successful_transactions
+      - source
+      - collections_are_not_profit
+      title: SalesTimeline
+    SalesTimelineBucket:
+      properties:
+        label:
+          type: string
+          title: Label
+        collections:
+          type: string
+          title: Collections
+        refunds:
+          type: string
+          title: Refunds
+        successful_transactions:
+          type: integer
+          title: Successful Transactions
+      type: object
+      required:
+      - label
+      - collections
+      - refunds
+      - successful_transactions
+      title: SalesTimelineBucket
+    SpeechRequest:
+      properties:
+        text:
+          type: string
+          maxLength: 2500
+          minLength: 1
+          title: Text
+        voice_id:
+          anyOf:
+          - type: string
+            maxLength: 128
+          - type: 'null'
+          title: Voice Id
+      type: object
+      required:
+      - text
+      title: SpeechRequest
+    StaffIn:
+      properties:
+        display_name:
+          type: string
+          maxLength: 180
+          minLength: 1
+          title: Display Name
+        role:
+          type: string
+          maxLength: 60
+          minLength: 1
+          title: Role
+        store_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Store Id
+      type: object
+      required:
+      - display_name
+      - role
+      title: StaffIn
+    StockAdjustment:
+      properties:
+        delta:
+          type: integer
+          maximum: 1000000.0
+          minimum: -1000000.0
+          title: Delta
+        reason:
+          type: string
+          maxLength: 240
+          minLength: 2
+          title: Reason
+      type: object
+      required:
+      - delta
+      - reason
+      title: StockAdjustment
+    StoreIn:
+      properties:
+        name:
+          type: string
+          maxLength: 180
+          minLength: 1
+          title: Name
+        code:
+          type: string
+          maxLength: 60
+          minLength: 1
+          title: Code
+        address:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Address
+      type: object
+      required:
+      - name
+      - code
+      title: StoreIn
+    SupplierIn:
+      properties:
+        name:
+          type: string
+          maxLength: 180
+          minLength: 1
+          title: Name
+        contact:
+          anyOf:
+          - type: string
+            maxLength: 180
+          - type: 'null'
+          title: Contact
+      type: object
+      required:
+      - name
+      title: SupplierIn
+    TransactionImport:
+      properties:
+        transactions:
+          items:
+            $ref: '#/components/schemas/ImportedTransaction'
+          type: array
+          maxItems: 500
+          minItems: 1
+          title: Transactions
+      type: object
+      required:
+      - transactions
+      title: TransactionImport
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+  securitySchemes:
+    HTTPBearer:
+      type: http
+      scheme: bearer

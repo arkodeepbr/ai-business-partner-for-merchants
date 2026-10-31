@@ -1,0 +1,1 @@
+{"cli":{"version":">= 12.0.0","appVersionSource":"local"},"build":{"development":{"developmentClient":true,"distribution":"internal"},"preview":{"distribution":"internal","env":{"EXPO_PUBLIC_DEMO_MODE":"true","EXPO_PUBLIC_LOCAL_BOOTSTRAP":"false"},"android":{"buildType":"apk"}},"production":{"android":{"buildType":"app-bundle"}}}}

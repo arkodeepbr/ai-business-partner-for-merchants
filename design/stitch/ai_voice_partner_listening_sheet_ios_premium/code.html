@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Paytm AI Business - AI Voice Partner</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-error": "#ffffff",
+            "inverse-primary": "#afc6ff",
+            "on-primary-container": "#7998de",
+            "background": "#faf8ff",
+            "secondary-container": "#2bc6ff",
+            "tertiary-container": "#003644",
+            "on-primary-fixed": "#001943",
+            "on-secondary-fixed-variant": "#004d66",
+            "inverse-on-surface": "#eef0ff",
+            "on-background": "#161b2a",
+            "on-secondary-fixed": "#001e2b",
+            "on-tertiary-fixed-variant": "#004e60",
+            "surface-container-lowest": "#ffffff",
+            "on-tertiary-container": "#00a6cb",
+            "tertiary-fixed-dim": "#47d6ff",
+            "surface-dim": "#d5d9ee",
+            "surface-container-highest": "#dee2f6",
+            "outline-variant": "#c4c6d2",
+            "on-primary": "#ffffff",
+            "surface": "#faf8ff",
+            "surface-container": "#eaedff",
+            "tertiary-fixed": "#b6ebff",
+            "on-secondary": "#ffffff",
+            "inverse-surface": "#2b303f",
+            "tertiary": "#001f29",
+            "surface-container-high": "#e3e7fc",
+            "on-surface-variant": "#434750",
+            "on-tertiary": "#ffffff",
+            "surface-container-low": "#f2f3ff",
+            "outline": "#747781",
+            "error-container": "#ffdad6",
+            "primary": "#001a45",
+            "surface-bright": "#faf8ff",
+            "surface-variant": "#dee2f6",
+            "on-error-container": "#93000a",
+            "primary-fixed-dim": "#afc6ff",
+            "secondary": "#006686",
+            "on-surface": "#161b2a",
+            "primary-container": "#002e6e",
+            "error": "#ba1a1a",
+            "on-tertiary-fixed": "#001f28",
+            "primary-fixed": "#d9e2ff",
+            "surface-tint": "#3d5d9e",
+            "on-primary-fixed-variant": "#224585",
+            "secondary-fixed-dim": "#71d2ff",
+            "secondary-fixed": "#c0e8ff",
+            "on-secondary-container": "#004f69"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "gutter": "1.5rem",
+            "margin": "2.5rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2.5rem",
+            "space-sm": "0.5rem",
+            "margin-mobile": "1rem",
+            "gutter-mobile": "0.75rem",
+            "space-md": "1rem"
+          },
+          "fontFamily": {
+            "display-hero": ["Inter"],
+            "headline-md": ["Inter"],
+            "display-hero-mobile": ["Inter"],
+            "body-md": ["Inter"],
+            "body-xl": ["Inter"],
+            "label-numeric": ["Inter"],
+            "headline-lg": ["Inter"],
+            "headline-xl": ["Inter"],
+            "label-badge": ["Inter"],
+            "headline-xl-mobile": ["Inter"],
+            "body-sm": ["Inter"]
+          },
+          "fontSize": {
+            "display-hero": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.03em", "fontWeight": "700" }],
+            "headline-md": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "display-hero-mobile": ["38px", { "lineHeight": "44px", "letterSpacing": "-0.025em", "fontWeight": "700" }],
+            "body-md": ["15px", { "lineHeight": "22px", "letterSpacing": "-0.005em", "fontWeight": "400" }],
+            "body-xl": ["18px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+            "label-numeric": ["16px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["26px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "headline-xl": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.025em", "fontWeight": "700" }],
+            "label-badge": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+            "headline-xl-mobile": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 0.95; transform: scale(1.08); }
+    }
+    @keyframes waveMotion {
+      0%, 100% { transform: scaleY(0.4); }
+      50% { transform: scaleY(1.3); }
+    }
+    @keyframes ringPulse {
+      0% { transform: scale(0.85); opacity: 0.8; }
+      100% { transform: scale(1.4); opacity: 0; }
+    }
+    .animate-pulse-glow { animation: pulseGlow 2.5s ease-in-out infinite; }
+    .animate-ring-pulse { animation: ringPulse 2s cubic-bezier(0.2, 0.8, 0.4, 1) infinite; }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface antialiased font-body-md select-none overflow-x-hidden min-h-screen flex items-center justify-center p-0 sm:p-4">
+<!-- Mobile Frame Container (Simulating iOS Device Canvas) -->
+<div class="relative w-full max-w-[430px] h-[932px] max-h-screen bg-background shadow-2xl rounded-none sm:rounded-[52px] overflow-hidden flex flex-col border border-outline-variant/30">
+<!-- BACKDROP CANVAS: Merchant Dashboard (Artfully blurred behind sheet) -->
+<div class="absolute inset-0 z-0 bg-surface-container-lowest filter blur-[6px] opacity-75 scale-[1.02] pointer-events-none p-margin-mobile pt-14">
+<div class="flex justify-between items-center mb-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-primary font-bold">RK</div>
+<div>
+<div class="font-headline-md text-headline-md text-primary">Radhe Shyam Kirana</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Merchant ID: 8940221</div>
+</div>
+</div>
+<div class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</div>
+</div>
+<!-- Quick Summary Card Backdrop -->
+<div class="p-space-lg rounded-[24px] bg-primary text-on-primary mb-4 shadow-lg">
+<span class="font-body-sm text-body-sm text-primary-fixed">Today's Total Volume</span>
+<div class="font-display-hero-mobile text-display-hero-mobile font-bold mt-1">₹42,850.00</div>
+<div class="flex gap-2 mt-3">
+<span class="px-2 py-0.5 rounded-full bg-surface-container-lowest/20 text-on-primary font-label-badge text-label-badge">94 Txns</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-lowest/20 text-on-primary font-label-badge text-label-badge">+18.4% vs yesterday</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div class="p-space-md rounded-2xl bg-surface-container-lowest border border-outline-variant/20 shadow-sm h-28"></div>
+<div class="p-space-md rounded-2xl bg-surface-container-lowest border border-outline-variant/20 shadow-sm h-28"></div>
+</div>
+</div>
+<!-- SEMI-TRANSPARENT SYSTEM SCRIM OVERLAY -->
+<div class="absolute inset-0 z-10 bg-primary/25 backdrop-blur-md pointer-events-none"></div>
+<!-- DYNAMIC ISLAND & iOS STATUS BAR -->
+<div class="relative z-30 pt-3 px-7 flex justify-between items-center text-on-surface w-full">
+<span class="font-label-numeric text-label-numeric font-bold tracking-tight text-primary">9:41</span>
+<!-- iOS Dynamic Island Capsule with Mic Privacy Dot -->
+<div class="flex items-center gap-2.5 bg-black px-3.5 py-1.5 rounded-full shadow-lg">
+<div class="w-3 h-3 rounded-full bg-secondary-container animate-pulse flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+</div>
+<span class="font-label-badge text-label-badge text-white tracking-widest uppercase">Paytm Voice</span>
+<!-- Mic Indicator Orange Dot -->
+<span class="w-2 h-2 rounded-full bg-orange-400"></span>
+</div>
+<div class="flex items-center gap-1.5 text-primary text-sm">
+<span class="material-symbols-outlined text-[17px]" data-icon="signal_cellular_4_bar">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[17px]" data-icon="wifi">wifi</span>
+<span class="material-symbols-outlined text-[19px]" data-icon="battery_full">battery_full</span>
+</div>
+</div>
+<!-- AUTHENTIC iOS BOTTOM SHEET MODAL CONTAINER -->
+<div class="relative z-20 mt-auto w-full h-[85%] rounded-t-[36px] bg-surface-container-lowest/90 backdrop-blur-2xl border-t border-white/70 shadow-[0_-20px_50px_rgba(0,26,69,0.18)] flex flex-col justify-between overflow-hidden">
+<!-- Specular Highlight Top Edge -->
+<div class="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent"></div>
+<!-- SHEET DRAG HANDLE & CLOSE ROW -->
+<div class="pt-3 px-6 flex flex-col items-center">
+<!-- Interactive Tactile Grabber Handle -->
+<div class="w-10 h-1.5 rounded-full bg-outline-variant/60 mb-2.5"></div>
+<div class="w-full flex justify-between items-center mt-1">
+<!-- Voice Assistant Identity Tag -->
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container-low border border-outline-variant/20 shadow-sm">
+<span class="material-symbols-outlined text-secondary text-[18px]" data-icon="auto_awesome" data-weight="fill" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="font-label-numeric text-label-badge text-primary font-bold tracking-tight">Paytm AI Voice Partner</span>
+<span class="w-2 h-2 rounded-full bg-secondary-container animate-ping"></span>
+</div>
+<!-- iOS Dismiss Button -->
+<button aria-label="Close Voice Assistant" class="w-8 h-8 rounded-full bg-surface-container-high/60 hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[19px]" data-icon="close">close</span>
+</button>
+</div>
+</div>
+<!-- MAIN SCROLLABLE/FOCUSED CONTENT CANVAS -->
+<div class="px-5 flex flex-col items-center justify-start flex-1 overflow-y-auto no-scrollbar pt-2 pb-1">
+<!-- Language Selector Pill -->
+<div class="flex items-center gap-2 px-3.5 py-1 rounded-full bg-secondary-fixed/50 border border-secondary-fixed-dim/40 text-secondary mb-3 mt-1">
+<span class="material-symbols-outlined text-[15px]" data-icon="translate">translate</span>
+<span class="font-label-badge text-label-badge text-on-secondary-fixed font-semibold">Listening in Hindi / Hinglish</span>
+<span class="material-symbols-outlined text-[14px] text-on-secondary-fixed-variant" data-icon="expand_more">expand_more</span>
+</div>
+<!-- Dynamic Live Waveform & Glowing Core Sphere -->
+<div class="relative w-full h-32 flex items-center justify-center my-1">
+<!-- Radiating Atmospheric Glow Rings -->
+<div class="absolute w-44 h-44 rounded-full bg-secondary-container/20 blur-xl animate-pulse-glow"></div>
+<div class="absolute w-32 h-32 rounded-full border border-secondary-container/30 animate-ring-pulse"></div>
+<div class="absolute w-24 h-24 rounded-full border border-secondary-fixed/50 animate-ring-pulse" style="animation-delay: 0.7s;"></div>
+<!-- Dynamic Audio Bars / Multi-frequency SVG Waves -->
+<div class="relative z-10 flex items-center justify-center gap-1.5 h-16 w-full max-w-[280px] px-2">
+<span class="w-1.5 h-6 bg-secondary-container rounded-full transform origin-center animate-[waveMotion_1.1s_ease-in-out_infinite]"></span>
+<span class="w-1.5 h-10 bg-secondary rounded-full transform origin-center animate-[waveMotion_0.9s_ease-in-out_infinite_0.1s]"></span>
+<span class="w-1.5 h-5 bg-primary-container rounded-full transform origin-center animate-[waveMotion_1.3s_ease-in-out_infinite_0.2s]"></span>
+<span class="w-2 h-14 bg-gradient-to-t from-primary to-secondary-container rounded-full transform origin-center animate-[waveMotion_0.8s_ease-in-out_infinite_0.15s]"></span>
+<!-- Central Siri/Apple Intelligence Luminous Orb -->
+<div class="w-14 h-14 mx-1 rounded-full bg-gradient-to-tr from-primary via-secondary to-secondary-container p-0.5 shadow-[0_0_24px_rgba(43,198,255,0.7)] flex items-center justify-center active:scale-95 transition-transform">
+<div class="w-full h-full rounded-full bg-surface-container-lowest/80 backdrop-blur-sm flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[26px] text-secondary-container" data-icon="mic" data-weight="fill" style="font-variation-settings: 'FILL' 1;">mic</span>
+</div>
+</div>
+<span class="w-2 h-14 bg-gradient-to-t from-secondary-container to-primary rounded-full transform origin-center animate-[waveMotion_0.75s_ease-in-out_infinite_0.05s]"></span>
+<span class="w-1.5 h-11 bg-secondary rounded-full transform origin-center animate-[waveMotion_1.2s_ease-in-out_infinite_0.25s]"></span>
+<span class="w-1.5 h-6 bg-secondary-container rounded-full transform origin-center animate-[waveMotion_0.95s_ease-in-out_infinite_0.3s]"></span>
+<span class="w-1.5 h-4 bg-primary-container rounded-full transform origin-center animate-[waveMotion_1.4s_ease-in-out_infinite_0.1s]"></span>
+</div>
+</div>
+<!-- Speech Status Indicator -->
+<div class="flex items-center gap-2 mb-3">
+<span class="w-2 h-2 rounded-full bg-secondary-container animate-ping"></span>
+<span class="font-label-numeric text-body-sm text-secondary font-semibold">Listening to merchant voice...</span>
+</div>
+<!-- SPEECH-TO-TEXT LIVE TRANSCRIPTION CARD (Frosted Glass Container) -->
+<div class="w-full p-space-md rounded-[22px] bg-surface-container-low/70 backdrop-blur-xl border border-white/60 shadow-[0_4px_16px_-2px_rgba(0,46,110,0.06)] mb-3">
+<div class="flex items-start gap-2.5">
+<span class="material-symbols-outlined text-secondary text-[20px] mt-0.5" data-icon="graphic_eq">graphic_eq</span>
+<div class="flex-1">
+<p class="font-headline-md text-headline-md text-primary font-bold leading-snug">
+                "आज शाम तक कितने UPI पेमेंट्स आए हैं और कुल कितना पैसा बैंक में सेटल होगा?"
+              </p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1 italic">
+                “How many UPI payments received till evening and how much will settle to bank?”
+              </p>
+</div>
+</div>
+</div>
+<!-- REAL-TIME AI THINKING & INSTANT COMPUTATION PREVIEW CARD -->
+<div class="w-full p-space-md rounded-[20px] bg-gradient-to-r from-surface-container-low to-secondary-fixed/30 border border-secondary-fixed-dim/40 shadow-sm mb-3">
+<div class="flex justify-between items-center mb-1.5">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[16px]" data-icon="insights">insights</span>
+<span class="font-label-badge text-label-badge uppercase tracking-wider text-secondary font-bold">Instant Calculation Preview</span>
+</div>
+<!-- Soundbox Speaker Replay Trigger -->
+<button class="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-surface-container-lowest/90 border border-outline-variant/30 text-primary hover:bg-surface-container transition-colors shadow-xs active:scale-95">
+<span class="material-symbols-outlined text-[14px] text-secondary" data-icon="volume_up" data-weight="fill" style="font-variation-settings: 'FILL' 1;">volume_up</span>
+<span class="font-label-badge text-label-badge font-semibold">Paytm Soundbox</span>
+</button>
+</div>
+<div class="flex items-baseline justify-between pt-1">
+<div>
+<span class="font-display-hero-mobile text-headline-lg font-bold text-primary tracking-tight">₹14,250.00</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant ml-1 font-medium">Ready to settle</span>
+</div>
+<div class="px-2.5 py-1 rounded-xl bg-secondary-fixed text-primary font-label-numeric text-body-sm font-bold shadow-xs">
+              42 UPI Txns
+            </div>
+</div>
+</div>
+<!-- QUICK VOICE PROMPTS & SUGGESTIONS ACCORDION/CHIPS -->
+<div class="w-full mt-1">
+<div class="flex items-center justify-between mb-2 px-1">
+<span class="font-label-badge text-label-badge uppercase tracking-wider text-on-surface-variant font-semibold">Or ask instantly</span>
+<span class="font-label-badge text-label-badge text-secondary font-medium">Tap to speak</span>
+</div>
+<div class="flex flex-col gap-1.5">
+<button class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-surface-container-lowest/80 border border-outline-variant/30 hover:border-secondary-container transition-all active:scale-[0.99] text-left">
+<div class="flex items-center gap-2.5">
+<span class="w-7 h-7 rounded-xl bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[17px]" data-icon="trending_up">trending_up</span>
+</span>
+<span class="font-body-md text-body-md text-primary font-medium">"आज का मुनाफा दिखाओ"</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant text-xs">Today's Profit</span>
+</button>
+<button class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-surface-container-lowest/80 border border-outline-variant/30 hover:border-secondary-container transition-all active:scale-[0.99] text-left">
+<div class="flex items-center gap-2.5">
+<span class="w-7 h-7 rounded-xl bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[17px]" data-icon="pending_actions">pending_actions</span>
+</span>
+<span class="font-body-md text-body-md text-primary font-medium">"किस ग्राहक का पैसा बाकी है?"</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant text-xs">Due Khata</span>
+</button>
+<button class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-surface-container-lowest/80 border border-outline-variant/30 hover:border-secondary-container transition-all active:scale-[0.99] text-left">
+<div class="flex items-center gap-2.5">
+<span class="w-7 h-7 rounded-xl bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[17px]" data-icon="speaker">speaker</span>
+</span>
+<span class="font-body-md text-body-md text-primary font-medium">"साउंडबॉक्स की आवाज़ बढ़ाओ"</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant text-xs">Soundbox Vol</span>
+</button>
+</div>
+</div>
+</div>
+<!-- BOTTOM CONTROL BAR & TAP WHEN DONE CTA -->
+<div class="p-4 pt-2 pb-6 bg-surface-container-lowest/90 border-t border-outline-variant/20 flex flex-col items-center">
+<!-- Floating Primary Voice Interruption Button -->
+<div class="flex items-center justify-center gap-3 w-full">
+<button class="flex-1 h-14 rounded-2xl bg-gradient-to-r from-primary to-primary-container text-on-primary flex items-center justify-center gap-3 font-headline-md text-label-numeric shadow-[0_8px_20px_-4px_rgba(0,46,110,0.3)] active:scale-[0.98] transition-transform">
+<span class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]" data-icon="stop" data-weight="fill" style="font-variation-settings: 'FILL' 1;">stop</span>
+</span>
+<span>Tap When Done • पूर्ण करें</span>
+</button>
+<!-- Quick Keyboard Query Toggle Icon -->
+<button aria-label="Type with Keyboard" class="w-14 h-14 rounded-2xl bg-surface-container-low border border-outline-variant/30 text-primary flex items-center justify-center hover:bg-surface-container transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[24px]" data-icon="keyboard">keyboard</span>
+</button>
+</div>
+<!-- iOS Tactile Home Indicator Bar -->
+<div class="w-32 h-1 rounded-full bg-on-surface-variant/30 mt-4"></div>
+</div>
+</div>
+</div>
+</body></html>

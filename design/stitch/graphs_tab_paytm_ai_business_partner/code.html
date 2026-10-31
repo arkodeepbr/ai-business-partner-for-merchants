@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Paytm AI Business - Analytics &amp; Graphs</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=SF+Pro+Display:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "apple-bg": "#F2F2F7",
+            "apple-card": "#FFFFFF",
+            "apple-subtext": "#8E8E93",
+            "apple-blue": "#007AFF",
+            "apple-green": "#34C759",
+            "apple-red": "#FF3B30",
+            "apple-teal": "#30B0C7",
+            "apple-indigo": "#5856D6",
+            "apple-separator": "rgba(60, 60, 67, 0.12)",
+            "primary": "#001a45",
+            "secondary": "#006686",
+            "surface": "#FAFAFC"
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Inter', 'SF Pro Text', 'Helvetica Neue', 'sans-serif'],
+          },
+          boxShadow: {
+            'ios-card': '0 2px 14px 0 rgba(0, 0, 0, 0.04), 0 0 1px 0 rgba(0, 0, 0, 0.08)',
+            'ios-elevated': '0 6px 24px 0 rgba(0, 0, 0, 0.06), 0 1px 2px 0 rgba(0, 0, 0, 0.04)',
+            'segment': '0 2px 6px rgba(0, 0, 0, 0.12), 0 1px 1px rgba(0, 0, 0, 0.04)',
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      -webkit-font-smoothing: antialiased;
+    }
+  </style>
+</head>
+<body class="bg-[#F2F2F7] text-[#1C1C1E] antialiased select-none min-h-screen pb-28">
+<div class="max-w-md mx-auto min-h-screen bg-[#F2F2F7] flex flex-col relative">
+<!-- iOS Native Status Bar -->
+<div class="sticky top-0 z-40 bg-[#F2F2F7]/85 backdrop-blur-xl w-full flex items-center justify-between px-6 pt-3 pb-2 text-[#000000]">
+<span class="text-[15px] font-semibold tracking-tight">9:41</span>
+<div class="flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-[17px] font-medium leading-none">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[16px] font-medium leading-none">wifi</span>
+<!-- iOS Style Battery Capsule -->
+<div class="flex items-center ml-0.5">
+<div class="w-[22px] h-[11px] rounded-[3px] border-[1.5px] border-black/80 p-0.5 flex items-center">
+<div class="h-full w-full bg-black rounded-[1px]"></div>
+</div>
+<div class="w-[1.5px] h-[4px] bg-black/80 rounded-r-[1px] ml-[1px]"></div>
+</div>
+</div>
+</div>
+<!-- Apple HIG Header & Merchant Card -->
+<header class="px-4 pt-1 pb-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-11 h-11 rounded-full bg-gradient-to-tr from-[#006686] to-[#2bc6ff] text-white flex items-center justify-center font-bold text-base shadow-sm ring-2 ring-white">
+            SG
+          </div>
+<div>
+<div class="flex items-center space-x-1.5">
+<h1 class="text-[17px] font-bold text-[#1C1C1E] tracking-tight">Paytm AI Business</h1>
+<span class="material-symbols-outlined text-apple-blue text-[17px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<p class="text-[12px] text-[#8E8E93] flex items-center gap-1.5 mt-0.5 font-medium">
+<span>Sharma General Store</span>
+<span class="inline-block w-1 h-1 rounded-full bg-[#8E8E93]"></span>
+<span class="inline-flex items-center text-apple-green font-semibold gap-0.5">
+<span class="w-1.5 h-1.5 rounded-full bg-apple-green"></span>
+                Active Terminal
+              </span>
+</p>
+</div>
+</div>
+<div class="flex items-center space-x-2">
+<button aria-label="Notifications" class="w-9 h-9 rounded-full bg-white flex items-center justify-center text-[#1C1C1E] shadow-ios-card active:scale-95 transition-all relative">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-apple-red ring-2 ring-white"></span>
+</button>
+</div>
+</div>
+<!-- Apple Segmented Control (Daily / Weekly / Monthly) -->
+<div class="mt-3.5 bg-[rgba(118,118,128,0.12)] p-[3px] rounded-[11px] flex items-center">
+<button class="flex-1 py-1.5 text-center rounded-[8px] text-[13px] font-semibold bg-white text-[#1C1C1E] shadow-segment transition-all duration-200">
+          Daily
+        </button>
+<button class="flex-1 py-1.5 text-center rounded-[8px] text-[13px] font-medium text-[#636366] hover:text-[#1C1C1E] transition-all duration-150">
+          Weekly
+        </button>
+<button class="flex-1 py-1.5 text-center rounded-[8px] text-[13px] font-medium text-[#636366] hover:text-[#1C1C1E] transition-all duration-150">
+          Monthly
+        </button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="px-4 space-y-4 flex-1">
+<!-- Section Title & Live Refresh Pill -->
+<div class="flex items-end justify-between pt-1">
+<div>
+<span class="text-[11px] font-bold text-apple-blue uppercase tracking-wider">Analytics</span>
+<h2 class="text-[22px] font-bold text-[#1C1C1E] tracking-tight leading-tight">Financial Overview</h2>
+<p class="text-[12px] text-[#8E8E93] font-normal mt-0.5">Live updates • Today, 24 Oct</p>
+</div>
+<div class="inline-flex items-center px-2.5 py-1 rounded-full bg-apple-green/12 text-apple-green text-[11px] font-bold tracking-tight gap-1.5 border border-apple-green/20">
+<span class="w-1.5 h-1.5 rounded-full bg-apple-green animate-pulse"></span>
+          LIVE
+        </div>
+</div>
+<!-- Metric Summary Strip: Apple Health 3-Column Cards -->
+<div class="grid grid-cols-3 gap-2.5">
+<!-- Inflow Metric Card -->
+<div class="bg-white p-3 rounded-2xl shadow-ios-card border border-black/[0.03] flex flex-col justify-between">
+<div class="flex items-center justify-between mb-1.5">
+<span class="text-[11px] font-medium text-[#8E8E93] tracking-tight">Inflow</span>
+<div class="w-5 h-5 rounded-full bg-apple-green/15 flex items-center justify-center text-apple-green">
+<span class="material-symbols-outlined text-[13px] font-bold">arrow_upward</span>
+</div>
+</div>
+<div>
+<span class="text-[17px] font-bold text-[#1C1C1E] tracking-tight block font-numeric">₹18,450</span>
+<div class="flex items-center gap-0.5 mt-0.5 text-apple-green text-[11px] font-semibold">
+<span>+14.2%</span>
+</div>
+</div>
+</div>
+<!-- Outflow Metric Card -->
+<div class="bg-white p-3 rounded-2xl shadow-ios-card border border-black/[0.03] flex flex-col justify-between">
+<div class="flex items-center justify-between mb-1.5">
+<span class="text-[11px] font-medium text-[#8E8E93] tracking-tight">Outflow</span>
+<div class="w-5 h-5 rounded-full bg-apple-red/15 flex items-center justify-center text-apple-red">
+<span class="material-symbols-outlined text-[13px] font-bold">arrow_downward</span>
+</div>
+</div>
+<div>
+<span class="text-[17px] font-bold text-[#1C1C1E] tracking-tight block font-numeric">₹4,200</span>
+<p class="text-[10px] text-[#8E8E93] font-medium mt-0.5 truncate">Supplier pay</p>
+</div>
+</div>
+<!-- Net Flow Metric Card -->
+<div class="bg-white p-3 rounded-2xl shadow-ios-card border border-black/[0.03] flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-center justify-between mb-1.5">
+<span class="text-[11px] font-medium text-[#8E8E93] tracking-tight">Net Flow</span>
+<div class="w-5 h-5 rounded-full bg-apple-blue/15 flex items-center justify-center text-apple-blue">
+<span class="material-symbols-outlined text-[13px] font-bold">account_balance_wallet</span>
+</div>
+</div>
+<div>
+<span class="text-[17px] font-bold text-apple-blue tracking-tight block font-numeric">₹14,250</span>
+<p class="text-[11px] text-apple-blue font-semibold mt-0.5">Profitable</p>
+</div>
+</div>
+</div>
+<!-- Money Inflow Line Graph (Apple Stocks & Fitness Style) -->
+<section class="bg-white p-4 rounded-2xl shadow-ios-card border border-black/[0.03]">
+<div class="flex items-start justify-between mb-2">
+<div>
+<h3 class="text-[16px] font-bold text-[#1C1C1E] tracking-tight">Money Inflow Trend</h3>
+<p class="text-[12px] text-[#8E8E93]">Hourly collections recorded today</p>
+</div>
+<span class="px-2.5 py-0.5 rounded-full bg-[#F2F2F7] text-[#1C1C1E] text-[11px] font-semibold border border-black/[0.04]">
+            UPI &amp; QR
+          </span>
+</div>
+<!-- Apple Fitness Peak Callout Banner -->
+<div class="flex items-center space-x-2 py-2 px-3 bg-apple-blue/[0.07] rounded-xl mb-3 border border-apple-blue/15">
+<div class="w-6 h-6 rounded-full bg-apple-blue/15 flex items-center justify-center shrink-0 text-apple-blue">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+</div>
+<span class="text-[12px] text-[#1C1C1E] font-medium leading-tight">
+            Peak sales time: <strong class="font-semibold text-apple-blue">10:00 AM – 12:30 PM</strong> (₹4,850)
+          </span>
+</div>
+<!-- Apple Stocks Smooth Bézier Curve Chart -->
+<div class="w-full relative pt-4 pb-1">
+<svg class="w-full h-44 overflow-visible" preserveaspectratio="none" viewbox="0 0 340 150">
+<defs>
+<!-- Apple Stocks Blue Gradient Area -->
+<lineargradient id="stocksGradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#007AFF" stop-opacity="0.32"></stop>
+<stop offset="65%" stop-color="#30B0C7" stop-opacity="0.08"></stop>
+<stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.00"></stop>
+</lineargradient>
+<!-- Soft Glow Filter -->
+<filter height="150%" id="appleGlow" width="150%" x="-25%" y="-25%">
+<fedropshadow dx="0" dy="4" flood-color="#007AFF" flood-opacity="0.28" stddeviation="4"></fedropshadow>
+</filter>
+</defs>
+<!-- Apple Minimal Horizontal Dash Guides -->
+<line stroke="#E5E5EA" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="340" y1="20" y2="20"></line>
+<line stroke="#E5E5EA" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="340" y1="60" y2="60"></line>
+<line stroke="#E5E5EA" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="340" y1="100" y2="100"></line>
+<line stroke="#E5E5EA" stroke-width="1" x1="0" x2="340" y1="135" y2="135"></line>
+<!-- Closed Area Fill -->
+<path d="M 10 120 
+                     C 35 110, 45 40, 65 35 
+                     C 85 30, 105 55, 120 62 
+                     C 145 74, 165 95, 175 92 
+                     C 200 85, 215 50, 230 48 
+                     C 255 45, 270 82, 285 85 
+                     C 305 88, 320 70, 330 65 
+                     L 330 135 L 10 135 Z" fill="url(#stocksGradient)"></path>
+<!-- Smooth Bézier Vector Line -->
+<path d="M 10 120 
+                     C 35 110, 45 40, 65 35 
+                     C 85 30, 105 55, 120 62 
+                     C 145 74, 165 95, 175 92 
+                     C 200 85, 215 50, 230 48 
+                     C 255 45, 270 82, 285 85 
+                     C 305 88, 320 70, 330 65" fill="none" filter="url(#appleGlow)" stroke="#007AFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.75"></path>
+<!-- Data Point Markers -->
+<circle cx="10" cy="120" fill="#ffffff" r="3" stroke="#007AFF" stroke-width="2"></circle>
+<!-- 10 AM Peak Highlight Pulse & Marker -->
+<circle cx="65" cy="35" fill="#007AFF" fill-opacity="0.2" r="9"></circle>
+<circle cx="65" cy="35" fill="#007AFF" r="4.5" stroke="#ffffff" stroke-width="2.5"></circle>
+<circle cx="120" cy="62" fill="#ffffff" r="3" stroke="#007AFF" stroke-width="2"></circle>
+<circle cx="175" cy="92" fill="#ffffff" r="3" stroke="#007AFF" stroke-width="2"></circle>
+<circle cx="230" cy="48" fill="#ffffff" r="3" stroke="#007AFF" stroke-width="2"></circle>
+<circle cx="285" cy="85" fill="#ffffff" r="3" stroke="#007AFF" stroke-width="2"></circle>
+<circle cx="330" cy="65" fill="#ffffff" r="3" stroke="#007AFF" stroke-width="2"></circle>
+<!-- Glowing Peak Tooltip Indicator Pin -->
+<g transform="translate(35, 1)">
+<rect fill="#1C1C1E" filter="url(#appleGlow)" height="22" rx="7" width="60"></rect>
+<polygon fill="#1C1C1E" points="30,22 26,26 34,26"></polygon>
+<text fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="10" font-weight="700" letter-spacing="-0.01em" text-anchor="middle" x="30" y="15">₹4,850</text>
+</g>
+</svg>
+<!-- Crisp Apple X-Axis Labels -->
+<div class="flex justify-between items-center text-[11px] text-[#8E8E93] font-medium px-1 mt-1.5">
+<span>8 AM</span>
+<span class="text-apple-blue font-bold">10 AM</span>
+<span>12 PM</span>
+<span>2 PM</span>
+<span>4 PM</span>
+<span>6 PM</span>
+<span>8 PM</span>
+</div>
+</div>
+</section>
+<!-- Inflow vs Outflow Comparison: Ultra-clean iOS Dual Bar Charts -->
+<section class="bg-white p-4 rounded-2xl shadow-ios-card border border-black/[0.03]">
+<div class="flex items-start justify-between mb-2">
+<div>
+<h3 class="text-[16px] font-bold text-[#1C1C1E] tracking-tight">Inflow vs Outflow Comparison</h3>
+<p class="text-[12px] text-[#8E8E93]">Daily volume across 6 days</p>
+</div>
+<!-- Legend Pills -->
+<div class="flex items-center space-x-3 text-[12px]">
+<div class="flex items-center space-x-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-apple-green"></span>
+<span class="text-[#1C1C1E] font-semibold text-[11px]">Inflow</span>
+</div>
+<div class="flex items-center space-x-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-apple-red"></span>
+<span class="text-[#8E8E93] font-medium text-[11px]">Outflow</span>
+</div>
+</div>
+</div>
+<!-- Modern iOS Paired Bar Chart -->
+<div class="w-full pt-2">
+<svg class="w-full h-36" preserveaspectratio="none" viewbox="0 0 340 140">
+<!-- Background Baseline and Guides -->
+<line stroke="#E5E5EA" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="340" y1="20" y2="20"></line>
+<line stroke="#E5E5EA" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="340" y1="70" y2="70"></line>
+<line stroke="#E5E5EA" stroke-width="1" x1="0" x2="340" y1="120" y2="120"></line>
+<!-- Mon -->
+<rect fill="#34C759" height="75" rx="5" width="13" x="19" y="45"></rect>
+<rect fill="#FF3B30" height="35" opacity="0.88" rx="5" width="13" x="35" y="85"></rect>
+<!-- Tue -->
+<rect fill="#34C759" height="85" rx="5" width="13" x="74" y="35"></rect>
+<rect fill="#FF3B30" height="45" opacity="0.88" rx="5" width="13" x="90" y="75"></rect>
+<!-- Wed -->
+<rect fill="#34C759" height="65" rx="5" width="13" x="129" y="55"></rect>
+<rect fill="#FF3B30" height="30" opacity="0.88" rx="5" width="13" x="145" y="90"></rect>
+<!-- Thu -->
+<rect fill="#34C759" height="90" rx="5" width="13" x="184" y="30"></rect>
+<rect fill="#FF3B30" height="40" opacity="0.88" rx="5" width="13" x="200" y="80"></rect>
+<!-- Fri -->
+<rect fill="#34C759" height="80" rx="5" width="13" x="239" y="40"></rect>
+<rect fill="#FF3B30" height="25" opacity="0.88" rx="5" width="13" x="255" y="95"></rect>
+<!-- Today (Active Focus Pill highlight background) -->
+<rect fill="#007AFF" fill-opacity="0.06" height="114" rx="8" width="40" x="286" y="10"></rect>
+<rect fill="#34C759" height="102" rx="5" width="13" x="292" y="18"></rect>
+<rect fill="#FF3B30" height="42" opacity="0.88" rx="5" width="13" x="308" y="78"></rect>
+</svg>
+<!-- X-Axis Labels with Today Badge -->
+<div class="flex justify-between items-center text-[11px] text-[#8E8E93] font-medium px-3 mt-1">
+<span>Mon</span>
+<span>Tue</span>
+<span>Wed</span>
+<span>Thu</span>
+<span>Fri</span>
+<span class="text-apple-blue font-bold bg-apple-blue/10 px-2 py-0.5 rounded-full">Today</span>
+</div>
+</div>
+</section>
+<!-- Glassmorphic iOS Smart AI Takeaway Card -->
+<section class="bg-gradient-to-br from-white/90 to-[#EBF5FF]/90 backdrop-blur-md p-4 rounded-2xl border border-apple-blue/20 shadow-ios-card relative overflow-hidden">
+<div class="flex items-start space-x-3">
+<div class="w-8 h-8 rounded-xl bg-apple-blue flex items-center justify-center text-white shrink-0 shadow-sm mt-0.5">
+<span class="material-symbols-outlined text-[19px]" style="font-variation-settings: 'FILL' 1;">lightbulb</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center space-x-1.5 mb-1">
+<span class="text-[13px] font-bold text-[#1C1C1E] tracking-tight">Paytm Business AI Insight</span>
+<span class="w-1.5 h-1.5 rounded-full bg-apple-blue animate-pulse"></span>
+</div>
+<p class="text-[12px] text-[#3A3A3C] leading-relaxed">
+              Inflow is up by <strong class="text-apple-green font-bold">18%</strong> compared to last Friday. Morning rush hours generated <strong class="text-[#1C1C1E] font-bold">64%</strong> of total daily revenue.
+            </p>
+</div>
+</div>
+</section>
+</main>
+<!-- Frosted Glass Apple Tab Bar with iOS Home Indicator -->
+<nav class="fixed bottom-0 left-0 w-full z-50 max-w-md mx-auto bg-white/85 backdrop-blur-xl border-t border-black/[0.08] pb-1 pt-1.5">
+<div class="flex justify-around items-center px-4">
+<!-- Tab 1: Home -->
+<button class="flex flex-col items-center justify-center text-[#8E8E93] py-1 px-4 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[23px]">storefront</span>
+<span class="text-[10px] font-medium tracking-tight mt-0.5">Home</span>
+</button>
+<!-- Tab 2: Wallet -->
+<button class="flex flex-col items-center justify-center text-[#8E8E93] py-1 px-4 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[23px]">account_balance_wallet</span>
+<span class="text-[10px] font-medium tracking-tight mt-0.5">Wallet</span>
+</button>
+<!-- Tab 3: Graphs (Active Apple Style Highlight) -->
+<button class="flex flex-col items-center justify-center text-apple-blue py-1 px-4 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[23px]" style="font-variation-settings: 'FILL' 1;">bar_chart</span>
+<span class="text-[10px] font-semibold tracking-tight mt-0.5">Graphs</span>
+</button>
+</div>
+<!-- iOS Home Indicator bar -->
+<div class="w-full flex justify-center pt-2 pb-1">
+<div class="w-32 h-1 bg-black/30 rounded-full"></div>
+</div>
+</nav>
+</div>
+</body></html>
