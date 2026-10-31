@@ -32,8 +32,6 @@ services:
         value: https://paytm-saathi-api.onrender.com/api/v1/integrations/telegram/webhook
       - key: TELEGRAM_WEBHOOK_SECRET
         generateValue: true
-      - key: QWEN_API_KEY
-        sync: false
       - key: QWEN_API_BASE_URL
         value: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
       - key: QWEN_MODEL
