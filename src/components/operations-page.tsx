@@ -18,7 +18,7 @@ const demoProducts = [
 ];
 const demoProfitByDay = [43000, 56000, 39000, 71000, 48000, 62000, 84000];
 
-export function OperationsPage({ records, canSave, onAdd, locale }: { records: FinanceRecord[]; canSave: boolean; onAdd: (record: Draft) => Promise<void>; locale: Locale }) {
+export function OperationsPage({ records, canSave, onAdd, onSpeak, locale }: { records: FinanceRecord[]; canSave: boolean; onAdd: (record: Draft) => Promise<void>; onSpeak: (text: string) => Promise<void>; locale: Locale }) {
   const [mode, setMode] = useState<EntryMode>("product");
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("1");
@@ -109,7 +109,7 @@ export function OperationsPage({ records, canSave, onAdd, locale }: { records: F
   async function askAdvice() {
     setAdviceLoading(true); setAdvice("");
     const facts = { sample_data: sample, seven_day_revenue_minor: revenue, seven_day_cost_of_goods_minor: costOfGoods, seven_day_expenses_minor: enteredExpenses, seven_day_net_profit_minor: netProfit, gross_margin_percent: Number(margin.toFixed(1)), suggested_next_seven_day_sales_target_minor: targetRevenue, stockout_items: products.filter((product) => product.quantity <= 5).map((product) => ({ name: product.name, remaining_units: product.quantity })), monthly_profit_run_rate_minor: Math.round(avgMonthlyProfit), loan_scenario: { principal_minor: principalMinor, annual_rate_percent: Number(loanRate) || 0, duration_months: term, estimated_monthly_payment_minor: emi, profit_to_payment_ratio: Number(loanCoverage.toFixed(2)) } };
-    try { const result = await api.chat([{ role: "user", content: `Give concise, cautious business guidance in the same language as the interface preference. Use only these figures; clearly label sample data. Explain profit and margin, suggest a next-week sales target, identify stock priorities, and comment on whether this loan scenario appears affordable from the recorded profit. If records are insufficient, say what is missing. Do not claim loan eligibility or guarantee outcomes. Facts: ${JSON.stringify(facts)}` }], locale); setAdvice(result.answer); }
+    try { const result = await api.chat([{ role: "user", content: `Give concise, cautious business guidance in the same language as the interface preference. Use only these figures; clearly label sample data. Explain profit and margin, suggest a next-week sales target, identify stock priorities, and comment on whether this loan scenario appears affordable from the recorded profit. If records are insufficient, say what is missing. Do not claim loan eligibility or guarantee outcomes. Facts: ${JSON.stringify(facts)}` }], locale); setAdvice(result.answer); void onSpeak(result.answer).catch(() => undefined); }
     catch { setAdvice("Saathi’s AI provider did not respond. The figures below remain local calculations from your entries; enter real sales, costs, and expenses before using them for a decision."); }
     finally { setAdviceLoading(false); }
   }
