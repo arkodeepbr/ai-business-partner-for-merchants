@@ -1,9 +1,8 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Eye, EyeOff, KeyRound, LoaderCircle, Mail, ShieldCheck, Sparkles } from "lucide-react";
+import { Eye, EyeOff, KeyRound, LoaderCircle, Mail, ShieldCheck, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 type Mode = "signin" | "signup" | "forgot" | "update-password";
@@ -62,8 +61,11 @@ export default function LoginForm() {
   const caption = mode === "signup" ? "A smarter business day starts here." : mode === "forgot" ? "We’ll email you a secure reset link." : mode === "update-password" ? "Set a strong password for your account." : "Sign in to your Paytm Saathi workspace.";
 
   return <main className="auth-page"><div className="auth-glow auth-glow-one"/><div className="auth-glow auth-glow-two"/>
-    <Link href="/" className="auth-back"><ArrowLeft size={16}/> Back to Saathi</Link>
-    <section className="auth-card"><div className="auth-brand"><span className="brand-mark"><i/><i/><i/></span><span className="brand-name">paytm<span>.</span><small>SAATHI</small></span></div>
+    <div className="auth-layout"><section className="auth-story"><div className="auth-brand"><span className="brand-mark"><i/><i/><i/></span><span className="brand-name">paytm<span>.</span><small>SAATHI</small></span></div>
+      <div className="auth-kicker"><Sparkles size={14}/> YOUR AI BUSINESS PARTNER</div><h2>One calmer place to run your business.</h2><p className="auth-story-copy">Saathi helps you understand daily sales, keep your money records in order, and make practical next-step plans.</p>
+      <div className="auth-feature-list"><article><span>01</span><div><strong>Sales that make sense</strong><p>See historical activity, track costs and discounts, and understand estimated profit.</p></div></article><article><span>02</span><div><strong>Customers who come back</strong><p>Review repeat purchases, spot customers who may be slipping away, and draft offers.</p></div></article><article><span>03</span><div><strong>Your own money ledger</strong><p>Track money lent, repayments, contacts, products, and business expenses in your account.</p></div></article><article><span>04</span><div><strong>Ask Saathi naturally</strong><p>Type or speak in English, Hindi, or Kannada. Answers use your saved records when relevant.</p></div></article></div>
+      <p className="auth-story-note"><ShieldCheck size={14}/> Your saved records are private to your signed-in account. Demo figures are clearly labeled.</p>
+    </section><section className="auth-card"><div className="auth-brand auth-brand-mobile"><span className="brand-mark"><i/><i/><i/></span><span className="brand-name">paytm<span>.</span><small>SAATHI</small></span></div>
       <div className="auth-kicker"><Sparkles size={14}/> MERCHANT GROWTH PARTNER</div><h1>{title}</h1><p className="auth-caption">{caption}</p>
       {mode === "signin" && <button className="google-auth" type="button" onClick={() => void googleSignIn()} disabled={busy}><span className="google-g">G</span> Continue with Google</button>}
       {mode === "signin" && <div className="auth-divider"><span>or sign in with email</span></div>}
@@ -80,6 +82,6 @@ export default function LoginForm() {
         {(mode === "forgot" || mode === "update-password") && <p><button type="button" onClick={() => { setMode("signin"); setError(""); setNotice(""); }}>Back to sign in</button></p>}
       </div>
       <div className="auth-trust"><ShieldCheck size={15}/><span>Protected sign-in · your business data stays private</span></div>
-    </section><p className="auth-footnote">By continuing, you agree to use Saathi with your authorized merchant account.</p>
+    </section></div>
   </main>;
 }

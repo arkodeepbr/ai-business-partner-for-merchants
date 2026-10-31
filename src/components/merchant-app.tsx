@@ -233,9 +233,38 @@ export function MerchantApp() {
       const answer = likelyLapsed.length ? `${sample ? "Illustrative sample only — " : "From your saved purchase history — "}these customers may have stopped visiting: ${likelyLapsed.map((customer) => `${customer.id}, last visit ${customer.daysSince} days ago, estimated risk ${customer.risk}%. Suggested follow-up: ${customer.offer}`).join("; ")}. These are estimates, not certain predictions. Review margin before any discount; no message is sent.` : `${sample ? "Illustrative sample only — " : "From your saved purchase history — "}no customer currently crosses the lapsed-visit threshold. Keep monitoring repeat intervals and use the Customers page to review suggested follow-ups. No message is sent.`;
       setPage("customers"); setMessages((items) => [...items, { role: "user", text: question }, { role: "assistant", text: answer }]); return;
     }
+    // Personal ledger questions must be answered from the signed-in account's
+    // saved finance records, not sent to the general AI provider.
+    const personOwedMatch = lowerQuestion.match(/\bhow much(?:\s+money)?(?:\s+does)?\s+(.+?)\s+(?:owe|owes)\s+(?:from\s+me|me|back)\b/u)
+      || lowerQuestion.match(/\bhow much(?:\s+money)?\s+(.+?)\s+(?:owe|owes)\s+me\b/u)
+      || lowerQuestion.match(/\b(.+?)\s+owes?\s+me\s+how much\b/u)
+      || lowerQuestion.match(/\bwhat does\s+(.+?)\s+owe\s+me\b/u);
+    if (personOwedMatch) {
+      if (token && financeReadyToken !== token) { setCommandNotice("Your saved money ledger is still loading. Please try again in a moment."); return; }
+      const requestedName = personOwedMatch[1].trim().replace(/[?.,!]+$/u, "").replace(/^(?:does|money)\s+/u, "");
+      const matchingPeople = [...new Set(financeRecords
+        .filter((item) => ["money_lent", "money_repaid"].includes(item.kind))
+        .map((item) => item.name)
+        .filter((name) => name.toLocaleLowerCase() === requestedName || name.toLocaleLowerCase().startsWith(`${requestedName} `)))];
+      if (matchingPeople.length === 1) {
+        const personName = matchingPeople[0];
+        const amountMinor = financeRecords
+          .filter((item) => ["money_lent", "money_repaid"].includes(item.kind) && item.name.toLocaleLowerCase() === personName.toLocaleLowerCase())
+          .reduce((total, item) => total + (item.kind === "money_lent" ? item.amount_minor : -item.amount_minor), 0);
+        const response = amountMinor > 0
+          ? `${personName} owes you ${money(amountMinor)} according to your saved Saathi account ledger.`
+          : `${personName} has no outstanding amount owed to you in your saved Saathi account ledger.`;
+        setPage("customers"); setMessages((items) => [...items, { role: "user", text: question }, { role: "assistant", text: response }]); return;
+      }
+      const response = matchingPeople.length > 1
+        ? `I found more than one saved contact matching “${requestedName}”. Please ask using their full name.`
+        : `I couldn't find a saved money-lent record for ${requestedName} in your Saathi account ledger. You can record it on the Customers page or say “I lent 200 to ${requestedName}”.`;
+      setPage("customers"); setMessages((items) => [...items, { role: "user", text: question }, { role: "assistant", text: response }]); return;
+    }
     const owingQuestion = /(who owes me|who borrowed from me|how much.*owe me|money owed to me|मेरे पैसे किसने|कौन मुझे पैसे देना है|ಯಾರು ನನಗೆ ಹಣ ಕೊಡಬೇಕು)/u.test(lowerQuestion);
     const borrowedQuestion = /(who do i owe|how much do i owe|who did i borrow from|मुझे किसको देना|मैंने किससे उधार|ನಾನು ಯಾರಿಗೆ ಕೊಡಬೇಕು|ನಾನು ಯಾರಿಂದ ಸಾಲ)/u.test(lowerQuestion);
     if (owingQuestion) {
+      if (token && financeReadyToken !== token) { setCommandNotice("Your saved money ledger is still loading. Please try again in a moment."); return; }
       const balances = new Map<string, { name: string; amount: number }>();
       for (const item of financeRecords) { if (!["money_lent", "money_repaid"].includes(item.kind)) continue; const key = item.phone || item.name.toLocaleLowerCase(); const row = balances.get(key) || { name: item.name, amount: 0 }; row.amount += item.kind === "money_lent" ? item.amount_minor : -item.amount_minor; balances.set(key, row); }
       const due = [...balances.values()].filter(x => x.amount > 0);
@@ -243,6 +272,7 @@ export function MerchantApp() {
       setPage("customers"); setMessages(items=>[...items,{role:"user",text:question},{role:"assistant",text:response}]); return;
     }
     if (borrowedQuestion) {
+      if (token && financeReadyToken !== token) { setCommandNotice("Your saved money ledger is still loading. Please try again in a moment."); return; }
       const balances = new Map<string, { name: string; amount: number }>();
       for (const item of financeRecords) { if (!["money_borrowed", "money_borrowed_repaid"].includes(item.kind)) continue; const key = item.phone || item.name.toLocaleLowerCase(); const row = balances.get(key) || { name: item.name, amount: 0 }; row.amount += item.kind === "money_borrowed" ? item.amount_minor : -item.amount_minor; balances.set(key, row); }
       const due = [...balances.values()].filter(x => x.amount > 0);
@@ -363,7 +393,6 @@ export function MerchantApp() {
     <FloatingSaathi open={floatingAssistantOpen} onToggle={() => setFloatingAssistantOpen((open) => !open)} onClose={() => setFloatingAssistantOpen(false)} onAsk={askSaathi} onSpeak={(text) => void speakReply(text)} messages={visibleMessages} latestAnswer={latestAssistantAnswer} pending={askMutation.isPending || workspaceLoading} voiceStatus={voiceStatus} onOpenVoice={() => { setPage("assistant"); setFloatingAssistantOpen(false); }}/>
     <aside className={`sidebar ${mobileNavOpen ? "sidebar-open" : ""}`}>
       <a className="brand" href="#overview" onClick={(event) => { event.preventDefault(); setPage("overview"); }}><span className="brand-mark"><i/><i/><i/></span><span className="brand-name">paytm<span>.</span><small>SAATHI</small></span></a>
-      <button suppressHydrationWarning className="shop-switcher" onClick={() => selectedOrg && setOrgId(selectedOrg)}><span className="shop-avatar">{selectedOrg ? "M" : "·"}</span><span><b>{selectedOrg ? "Merchant business" : "Connect your account"}</b><small>{selectedOrg ? "Verified membership" : "Sign in to view your stores"}</small></span><ChevronDown size={16}/></button>
       <p className="nav-label">YOUR BUSINESS</p>
       <nav className="nav-list" aria-label="Business navigation">{nav.map((item) => { const Icon = item.icon; return <button key={item.key} className={`nav-item ${page === item.key ? "active" : ""}`} onClick={() => { setPage(item.key); setMobileNavOpen(false); }}><Icon size={18}/><span>{item.label}</span>{item.key === "sales" && <i className="nav-new">NEW</i>}</button>; })}</nav>
       <p className="nav-label tools-label">TOOLS</p>

@@ -374,6 +374,33 @@ h1,h2,h3,p { margin-top: 0; }
 .auth-links { display:grid; gap:11px; margin-top:17px; text-align:center; }.auth-links p { margin:5px 0 0; color:#778a83; font-size:12px; }.auth-links button,.resend-code { display:inline-flex; justify-content:center; align-items:center; gap:5px; padding:0; border:0; background:none; color:#088f7c; font:inherit; font-size:12px; font-weight:700; cursor:pointer; }.auth-links p button { margin-left:3px; }.resend-code { display:flex; margin:13px auto 0; color:#647b72; font-weight:600; }.auth-trust { display:flex; align-items:center; justify-content:center; gap:7px; margin-top:24px; padding-top:18px; border-top:1px solid #edf1ed; color:#83938d; font-size:10px; }.auth-trust svg { color:#0cab8e; }.auth-footnote { position:relative; z-index:1; margin:18px 0 0; color:#879791; text-align:center; font-size:10px; }.top-auth-button { padding:8px 12px; border:1px solid #dfe8e2; border-radius:9px; background:white; color:#087f6c; text-decoration:none; font-size:11px; font-weight:700; cursor:pointer; }.profile-login-link { flex:0 0 auto; color:#078e78; font-size:11px; font-weight:700; text-decoration:none; }
 @media(max-width:520px) { .auth-page { padding:64px 14px 28px; }.auth-card { padding:29px 23px 23px; border-radius:17px; }.auth-card h1 { font-size:25px; }.auth-back { top:22px; left:18px; } }
 .profit-bars i.loss { background:linear-gradient(180deg,#f1a1a4,#dc6672); }
+
+/* Public Saathi welcome page: product overview and sign-in together. */
+.auth-page { place-items:center; padding:42px 26px; }
+.auth-layout { position:relative; z-index:1; width:min(1160px,100%); display:grid; grid-template-columns:minmax(0,1.12fr) minmax(390px,.88fr); align-items:center; gap:clamp(36px,7vw,96px); }
+.auth-story { max-width:610px; }
+.auth-story>.auth-brand { margin-bottom:42px; }
+.auth-story h2 { max-width:570px; margin:17px 0 12px; color:#112f2b; font-size:clamp(35px,4.2vw,54px); line-height:1.07; letter-spacing:-1.8px; }
+.auth-story-copy { max-width:520px; margin:0; color:#71837d; font-size:15px; line-height:1.75; }
+.auth-feature-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:28px; }
+.auth-feature-list article { display:flex; gap:12px; min-height:112px; padding:16px; border:1px solid rgba(218,231,223,.92); border-radius:14px; background:rgba(255,255,255,.72); box-shadow:0 10px 28px rgba(16,55,45,.035); }
+.auth-feature-list article>span { display:grid; place-items:center; flex:0 0 30px; width:30px; height:30px; border-radius:9px; background:#e4f7f1; color:#078e78; font-size:10px; font-weight:800; }
+.auth-feature-list strong { color:#1b3b33; font-size:12px; }
+.auth-feature-list p { margin:6px 0 0; color:#758780; font-size:10px; line-height:1.6; }
+.auth-story-note { display:flex; align-items:center; gap:8px; margin:22px 0 0; color:#6e8179; font-size:11px; }
+.auth-story-note svg { flex:0 0 auto; color:#0cab8e; }
+.auth-card { width:100%; max-width:470px; justify-self:end; }
+.auth-card .auth-brand-mobile { display:none; }
+.hero-card { min-height:300px; padding:30px 34px 0; }
+.hero-content { max-width:61%; }
+.hero-content h2 { font-size:32px; line-height:1.12; letter-spacing:-.9px; }
+.hero-content p { max-width:560px; font-size:12px; line-height:1.8; }
+.hero-button { margin-top:20px; padding:12px 17px; font-size:10px; }
+.hero-art { height:235px; top:15px; }
+.soundbox-device { width:174px; height:108px; right:128px; top:67px; }
+@media(max-width:900px) { .auth-layout { grid-template-columns:minmax(0,1fr) minmax(350px,.9fr); gap:28px; }.auth-feature-list { grid-template-columns:1fr; gap:8px; }.auth-feature-list article { min-height:0; padding:12px; }.auth-story h2 { font-size:38px; } }
+@media(max-width:760px) { .auth-page { place-items:start center; padding:28px 16px; }.auth-layout { max-width:520px; grid-template-columns:1fr; gap:24px; }.auth-story { max-width:none; }.auth-story>.auth-brand { margin-bottom:25px; }.auth-story h2 { max-width:none; font-size:34px; }.auth-story-copy { font-size:13px; }.auth-feature-list { grid-template-columns:repeat(2,minmax(0,1fr)); margin-top:18px; }.auth-feature-list article { gap:8px; padding:11px; }.auth-feature-list article>span { flex-basis:26px; width:26px; height:26px; }.auth-feature-list strong { font-size:10px; }.auth-feature-list p { font-size:9px; }.auth-story-note { margin-top:13px; font-size:10px; }.auth-card { justify-self:stretch; max-width:none; }.auth-card .auth-brand-mobile { display:flex; margin-bottom:22px; }.auth-card>.auth-kicker { display:none; } }
+@media(max-width:520px) { .auth-feature-list { grid-template-columns:1fr 1fr; }.auth-story h2 { font-size:30px; }.auth-page { padding:22px 14px; }.auth-card { padding:25px 20px 21px; }.hero-card { min-height:270px; padding:22px 20px 0; }.hero-content { max-width:82%; }.hero-content h2 { font-size:26px; }.hero-content p { font-size:10px; }.hero-art { opacity:.42; }.soundbox-device { right:80px; transform:scale(.82) perspective(420px) rotateY(-13deg) rotateX(5deg); } }
 .target-value { margin:12px 0 8px; color:#102f29; font-size:27px; font-weight:750; letter-spacing:-.04em; }
 .target-lift { display:flex; align-items:center; gap:7px; color:#74827b; font-size:9px; }
 .target-lift input { width:58px; height:28px; padding:0 7px; border:1px solid #e4ebe6; border-radius:7px; font:inherit; }
